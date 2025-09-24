@@ -45,6 +45,11 @@ const adminNavigation = {
       url: "/admin/analytics",
       icon: BarChart3,
     },
+    {
+      title: "Calendar",
+      url: "/admin/calendar",
+      icon: Calendar,
+    },
   ],
   management: [
     {

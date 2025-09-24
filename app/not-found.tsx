@@ -10,7 +10,7 @@ export default function NotFound() {
         Uh, oh. We couldn&apos;t find that page.
       </h2>
       <Link
-        href="/app"
+        href="/"
         className="flex items-center gap-2 rounded-lg border border-input px-3 py-2 hover:bg-muted"
       >
         <ArrowLeft className="size-5" />
