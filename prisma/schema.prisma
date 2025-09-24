@@ -1,0 +1,508 @@
+// Zimunda Estate Booking Platform Database Schema
+// Complete schema for property booking, payments, and e-commerce
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================================================
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  role          UserRole  @default(GUEST)
+  phone         String?
+  sessions      Session[]
+  accounts      Account[]
+  //guests        Guest[]
+  bookings      Booking[]
+  orders        Order[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+// ============================================================================
+// PROPERTY MANAGEMENT
+// ============================================================================
+
+model Property {
+  id            String            @id @default(cuid())
+  name          String
+  type          PropertyType
+  slug          String            @unique
+  description   String
+  maxOccupancy  Int
+  basePrice     Decimal
+  images        Image[]
+  amenities     PropertyAmenity[]
+  rules         String[]
+  policies      Json
+  location      Json
+  status        PropertyStatus    @default(ACTIVE)
+  bookings      Booking[]
+  addOns        AddOn[]
+  blockedDates  BlockedDate[]
+  customPricing CustomPricing[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Image {
+  id         String    @id @default(cuid())
+  url        String
+  alt        String?
+  caption    String?
+  order      Int       @default(0)
+  propertyId String?
+  productId  String?
+  activityId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+}
+
+model Amenity {
+  id         String            @id @default(cuid())
+  name       String            @unique
+  icon       String
+  isGlobal   Boolean           @default(false)
+  properties PropertyAmenity[]
+  createdAt  DateTime          @default(now())
+}
+
+model PropertyAmenity {
+  id         String   @id @default(cuid())
+  propertyId String
+  amenityId  String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, amenityId])
+}
+
+model AddOn {
+  id          String         @id @default(cuid())
+  name        String
+  description String
+  price       Decimal
+  isGlobal    Boolean        @default(false)
+  propertyId  String?
+  property    Property?      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  bookings    BookingAddOn[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model BlockedDate {
+  id         String    @id @default(cuid())
+  date       DateTime
+  reason     String?
+  propertyId String?
+  activityId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([date, propertyId])
+  @@unique([date, activityId])
+}
+
+model CustomPricing {
+  id         String    @id @default(cuid())
+  date       DateTime
+  price      Decimal
+  propertyId String?
+  activityId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  activity   Activity? @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([date, propertyId])
+  @@unique([date, activityId])
+}
+
+// ============================================================================
+// BOOKING SYSTEM
+// ============================================================================
+
+model Booking {
+  id              String            @id @default(cuid())
+  propertyId      String?
+  property        Property?         @relation(fields: [propertyId], references: [id])
+  isEstateBooking Boolean           @default(false)
+  isActivityOnlyBooking Boolean     @default(false)
+  guestId         String
+  guest           User              @relation(fields: [guestId], references: [id])
+  checkIn         DateTime
+  checkOut        DateTime
+  adults          Int
+  children        Int
+  totalPrice      Decimal
+  status          BookingStatus
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus
+  addOns          BookingAddOn[]
+  activities      ActivityBooking[]
+  payments        Payment[]
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model BookingAddOn {
+  id        String  @id @default(cuid())
+  bookingId String
+  addOnId   String
+  quantity  Int     @default(1)
+  price     Decimal
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  addOn     AddOn   @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, addOnId])
+}
+
+// ============================================================================
+// ACTIVITIES
+// ============================================================================
+
+model Activity {
+  id              String            @id @default(cuid())
+  name            String            @unique
+  slug            String            @unique
+  type            ActivityType
+  description     String
+  duration        Int // in minutes
+  price           Decimal
+  capacity        Int
+  maxParticipants Int
+  difficulty      String
+  location        String
+  requirements    String[]
+  availability    Json // time slots, days
+  bookable        Boolean           @default(true)
+  images          Image[]
+  bookings        ActivityBooking[]
+  blockedDates    BlockedDate[]
+  customPricing   CustomPricing[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model ActivityBooking {
+  id           String        @id @default(cuid())
+  bookingId    String
+  activityId   String
+  date         DateTime
+  time         String
+  participants Int
+  totalPrice   Decimal
+  status       BookingStatus @default(PENDING)
+  booking      Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  activity     Activity      @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([activityId, date, time])
+}
+
+// ============================================================================
+// E-COMMERCE
+// ============================================================================
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  category    ProductCategory
+  description String
+  price       Decimal
+  variants    ProductVariant[]
+  inventory   Int
+  images      Image[]
+  orders      OrderItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model ProductVariant {
+  id         String      @id @default(cuid())
+  productId  String
+  name       String // e.g., "250g Ground", "1kg Beans"
+  price      Decimal
+  inventory  Int
+  sku        String      @unique
+  options    Json // size, grind type, etc.
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  customerId      String
+  customer        User          @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+  subtotal        Decimal
+  shipping        Decimal       @default(0)
+  tax             Decimal       @default(0)
+  total           Decimal
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  shippingAddress Json?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String?
+  quantity  Int
+  price     Decimal
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  createdAt DateTime        @default(now())
+}
+
+// ============================================================================
+// PAYMENTS
+// ============================================================================
+
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String?
+  orderId           String?
+  booking           Booking?      @relation(fields: [bookingId], references: [id])
+  amount            Decimal
+  currency          String        @default("USD")
+  method            PaymentMethod
+  status            PaymentStatus
+  externalReference String? // Paynow poll URL
+  completedAt       DateTime?
+  notes             String?
+  receivedBy        String? // Staff ID for offline payments
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model WebhookLog {
+  id        String   @id @default(cuid())
+  provider  String // paynow, stripe, etc.
+  payload   Json
+  response  Json?
+  processed Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+model Settings {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  value          String
+  description    String?
+  category       String   @default("general")
+  dataType       String   @default("string") // string, number, boolean, json
+  isEditable     Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  GUEST
+  STAFF
+  MANAGER
+  ADMIN
+}
+
+enum PropertyType {
+  COTTAGE
+  CABIN
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  PAYNOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ActivityType {
+  COFFEE_TOUR
+  POOL_BOOKING
+  HIKING
+  BIRD_WATCHING
+  MASSAGE
+  OTHER
+}
+
+enum ProductCategory {
+  COFFEE
+  MERCHANDISE
+  FOOD
+  BEVERAGES
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+/*
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  emailVerified  Boolean   @default(false)
+  name           String
+  phone          String?
+  role           UserRole  @default(GUEST)
+  hashedPassword String?
+  image          String?
+  accounts       Account[]
+  sessions       Session[]
+  bookings       Booking[]
+  orders         Order[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("user")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expiresAt    DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  ipAddress    String?
+  userAgent    String?
+
+  token String
+
+  @@map("session")
+  @@unique([token])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+*/
