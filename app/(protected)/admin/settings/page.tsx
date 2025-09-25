@@ -169,7 +169,7 @@ export default function AdminSettingsPage() {
     fetchSettings();
   }, []);
 
-  const categories = Object.keys(groupedSettings);
+  const categories = Object.keys(groupedSettings || {});
   
   if (loading) {
     return (

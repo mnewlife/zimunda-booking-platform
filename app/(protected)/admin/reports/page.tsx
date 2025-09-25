@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import prisma from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
+/*import { 
   BarChart, 
   Bar, 
   XAxis, 
@@ -34,7 +34,7 @@ import {
   Cell,
   LineChart,
   Line
-} from 'recharts';
+} from 'recharts';*/
 import { 
   DollarSign, 
   TrendingUp, 
@@ -55,14 +55,10 @@ export const metadata: Metadata = {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export default async function ReportsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth.api.getSession({ headers: await headers() });
   
-  if (!session?.user) {
-    redirect('/auth/signin');
-  }
-
-  if (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER') {
-    redirect('/dashboard');
+  if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    redirect('/login');
   }
 
   // Get current date and calculate date ranges
@@ -76,7 +72,7 @@ export default async function ReportsPage() {
     // Overall Statistics
     Promise.all([
       prisma.booking.aggregate({
-        _sum: { totalAmount: true },
+        _sum: { totalPrice: true },
         _count: true,
       }),
       prisma.order.aggregate({
@@ -104,7 +100,7 @@ export default async function ReportsPage() {
                 lte: monthEnd,
               },
             },
-            _sum: { totalAmount: true },
+            _sum: { totalPrice: true },
           }),
           prisma.order.aggregate({
             where: {
@@ -117,9 +113,9 @@ export default async function ReportsPage() {
           }),
         ]).then(([bookings, orders]) => ({
           month: monthName,
-          bookings: bookings._sum.totalAmount || 0,
+          bookings: bookings._sum.totalPrice || 0,
           orders: orders._sum.total || 0,
-          total: (bookings._sum.totalAmount || 0) + (orders._sum.total || 0),
+          total: (bookings._sum.totalPrice || 0) + (orders._sum.total || 0),
         }));
       })
     ),
@@ -134,7 +130,7 @@ export default async function ReportsPage() {
         },
         bookings: {
           select: {
-            totalAmount: true,
+            totalPrice: true,
           },
         },
       },
@@ -149,7 +145,7 @@ export default async function ReportsPage() {
     // Product Sales
     prisma.product.findMany({
       include: {
-        orderItems: {
+        orders: {
           select: {
             quantity: true,
             price: true,
@@ -157,7 +153,7 @@ export default async function ReportsPage() {
         },
       },
       orderBy: {
-        orderItems: {
+        orders: {
           _count: 'desc',
         },
       },
@@ -188,7 +184,7 @@ export default async function ReportsPage() {
 
   const [bookingStats, orderStats, totalUsers, totalProperties, totalActivities, totalProducts] = overallStats;
   
-  const totalBookingRevenue = bookingStats._sum.totalAmount || 0;
+  const totalBookingRevenue = bookingStats._sum.totalPrice || 0;
   const totalOrderRevenue = orderStats._sum.total || 0;
   const totalRevenue = totalBookingRevenue + totalOrderRevenue;
   const totalBookings = bookingStats._count;
@@ -201,12 +197,12 @@ export default async function ReportsPage() {
   const propertyData = bookingsByProperty.map(property => ({
     name: property.name,
     bookings: property._count.bookings,
-    revenue: property.bookings.reduce((sum, booking) => sum + booking.totalAmount, 0),
+    revenue: property.bookings.reduce((sum, booking) => sum + booking.totalPrice, 0),
   }));
   
   const productData = productSales.map(product => {
-    const totalQuantity = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
-    const totalRevenue = product.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalQuantity = product.orders.reduce((sum, item) => sum + item.quantity, 0);
+    const totalRevenue = product.orders.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     return {
       name: product.name,
       quantity: totalQuantity,
@@ -343,9 +339,9 @@ export default async function ReportsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      {/*<div className="grid gap-6 md:grid-cols-2">*/}
         {/* Revenue Chart */}
-        <Card>
+        {/*<Card>
           <CardHeader>
             <CardTitle>Revenue Trend (Last 6 Months)</CardTitle>
           </CardHeader>
@@ -361,10 +357,10 @@ export default async function ReportsPage() {
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
+        </Card>*/}
 
         {/* User Growth Chart */}
-        <Card>
+        {/*<Card>
           <CardHeader>
             <CardTitle>User Growth (Last 12 Months)</CardTitle>
           </CardHeader>
@@ -380,7 +376,7 @@ export default async function ReportsPage() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
+      </div>*/}
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Top Properties */}
