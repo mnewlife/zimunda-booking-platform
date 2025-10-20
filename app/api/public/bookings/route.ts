@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { BookingStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
 
 // Helper function to map payment method strings to Prisma enum values

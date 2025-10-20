@@ -52,7 +52,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { AdminSidebar } from '@/components/admin-sidebar';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { BookingStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
 import { format } from 'date-fns';
 

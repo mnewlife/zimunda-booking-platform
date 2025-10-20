@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { PropertyCard } from '@/components/property/property-card';
 import { PropertyFilters } from '@/components/property/property-filters';
 import { Suspense } from 'react';

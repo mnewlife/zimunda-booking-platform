@@ -13,7 +13,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ActivityForm } from '@/components/admin/activity-form';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 export const metadata: Metadata = {
   title: 'Edit Activity | Zimunda Estate Admin',

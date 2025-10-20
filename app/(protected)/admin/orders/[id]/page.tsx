@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +42,7 @@ export default async function OrderPage({ params }: OrderPageProps) {
   const session = await getServerSession(authOptions);
   
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect('/login');
   }
 
   if (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER') {

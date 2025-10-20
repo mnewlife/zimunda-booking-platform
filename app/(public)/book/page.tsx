@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { BookingForm } from '@/components/booking/booking-form';
 import { Skeleton } from '@/components/ui/skeleton';
 

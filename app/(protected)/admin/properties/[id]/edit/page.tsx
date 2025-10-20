@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { redirect, notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { AdminSidebar } from '@/components/admin-sidebar';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';

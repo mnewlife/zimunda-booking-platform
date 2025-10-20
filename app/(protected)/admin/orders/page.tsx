@@ -38,7 +38,7 @@ export default async function OrdersPage() {
   const session = await auth.api.getSession({ headers: request.headers });
   
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect('/login');
   }
 
   if (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER') {

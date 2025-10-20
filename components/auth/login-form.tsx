@@ -79,7 +79,7 @@ export function LoginForm() {
             type="email"
             placeholder="Enter your email"
             {...register('email')}
-            className={errors.email ? 'border-red-500' : ''}
+            className={errors.email ? 'bg-white border-red-500' : 'bg-white'}
           />
           {errors.email && (
             <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -94,7 +94,7 @@ export function LoginForm() {
               type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
               {...register('password')}
-              className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+              className={errors.password ? 'bg-white border-red-500 pr-10' : 'bg-white pr-10'}
             />
             <button
               type="button"

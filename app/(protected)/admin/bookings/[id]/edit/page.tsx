@@ -14,7 +14,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { BookingFormPage } from '@/components/admin/booking-form-page';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 export const metadata: Metadata = {
   title: 'Edit Booking | Admin Dashboard',

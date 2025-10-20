@@ -374,7 +374,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         <FormItem>
                           <FormLabel>Property Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter property name" {...field} />
+                            <Input className="bg-white" placeholder="Enter property name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -415,8 +415,8 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         <FormLabel>Description</FormLabel>
                         <FormControl>
                           <Textarea
+                            className="bg-white min-h-[100px]"
                             placeholder="Describe the property..."
-                            className="min-h-[100px]"
                             {...field}
                           />
                         </FormControl>
@@ -431,17 +431,18 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       name="maxOccupancy"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Max Occupancy</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="1"
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      <FormLabel>Max Occupancy</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-white"
+                          type="number"
+                          placeholder="4"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                       )}
                     />
                     <FormField
@@ -452,6 +453,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                           <FormLabel>Base Price (per night)</FormLabel>
                           <FormControl>
                             <Input
+                              className="bg-white"
                               type="number"
                               min="1"
                               step="0.01"
@@ -505,7 +507,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter full address" {...field} />
+                          <Input className="bg-white" placeholder="Enter full address" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -519,7 +521,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         <FormItem>
                           <FormLabel>City</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter city" {...field} />
+                            <Input className="bg-white" placeholder="Enter city" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -530,12 +532,12 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       name="location.country"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter country" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input className="bg-white" placeholder="United States" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                       )}
                     />
                   </div>
@@ -572,6 +574,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                                 >
                                   <FormControl>
                                     <Checkbox
+                                      className="bg-white"
                                       checked={field.value?.includes(amenity.id)}
                                       onCheckedChange={(checked) => {
                                         return checked
@@ -692,6 +695,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       <div>
                         <Label htmlFor="addon-name">Name</Label>
                         <Input
+                          className="bg-white"
                           id="addon-name"
                           placeholder="e.g., Airport Transfer"
                           value={newAddOn.name}
@@ -701,6 +705,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       <div>
                         <Label htmlFor="addon-description">Description</Label>
                         <Input
+                          className="bg-white"
                           id="addon-description"
                           placeholder="e.g., Round trip airport transfer"
                           value={newAddOn.description}
@@ -710,6 +715,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       <div>
                         <Label htmlFor="addon-price">Price ($)</Label>
                         <Input
+                          className="bg-white"
                           id="addon-price"
                           type="number"
                           min="0"
@@ -759,6 +765,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                               >
                                 <FormControl>
                                   <Checkbox
+                                    className="bg-white"
                                     checked={field.value?.includes(activity.id)}
                                     onCheckedChange={(checked) => {
                                       return checked
@@ -805,12 +812,12 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         name="policies.checkIn"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Check-in Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                      <FormLabel>Check-in Time</FormLabel>
+                      <FormControl>
+                        <Input className="bg-white" placeholder="15:00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                         )}
                       />
                       <FormField
@@ -818,12 +825,12 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         name="policies.checkOut"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Check-out Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                      <FormLabel>Check-out Time</FormLabel>
+                      <FormControl>
+                        <Input className="bg-white" placeholder="11:00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                         )}
                       />
                     </div>
@@ -840,6 +847,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         <FormItem>
                           <FormControl>
                             <Textarea
+                              className="bg-white"
                               placeholder="Describe the cancellation policy..."
                               {...field}
                             />
@@ -868,6 +876,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                             </div>
                             <FormControl>
                               <Checkbox
+                                className="bg-white"
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                               />
@@ -888,6 +897,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                             </div>
                             <FormControl>
                               <Checkbox
+                                className="bg-white"
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                               />
@@ -908,6 +918,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                             </div>
                             <FormControl>
                               <Checkbox
+                                className="bg-white"
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
                               />
@@ -925,6 +936,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                     <div className="space-y-4">
                       <div className="flex gap-2">
                         <Input
+                          className="bg-white"
                           placeholder="Add a custom rule..."
                           value={newRule}
                           onChange={(e) => setNewRule(e.target.value)}
@@ -1020,16 +1032,19 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <Input
+                          className="bg-white"
                           placeholder="Image URL"
                           value={newImage.url}
                           onChange={(e) => setNewImage({ ...newImage, url: e.target.value })}
                         />
                         <Input
+                          className="bg-white"
                           placeholder="Alt text (optional)"
                           value={newImage.alt}
                           onChange={(e) => setNewImage({ ...newImage, alt: e.target.value })}
                         />
                         <Input
+                          className="bg-white"
                           placeholder="Caption (optional)"
                           value={newImage.caption}
                           onChange={(e) => setNewImage({ ...newImage, caption: e.target.value })}

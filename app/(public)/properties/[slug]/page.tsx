@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { PropertyGallery } from '@/components/property/property-gallery';
 import { PropertyDetails } from '@/components/property/property-details';
 import { PropertyBooking } from '@/components/property/property-booking';

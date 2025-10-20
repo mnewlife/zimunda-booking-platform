@@ -47,7 +47,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { ProductCategory } from '@prisma/client';
 
 export const metadata: Metadata = {

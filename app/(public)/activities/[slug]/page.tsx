@@ -64,31 +64,38 @@ const getActivity = async (id: string) => {
 };
 
 const getSimilarActivities = async (currentActivityId: string, type: string) => {
-  // Mock similar activities
-  return [
-    {
-      id: '2',
-      slug: 'mountain-hiking-adventure',
-      title: 'Mountain Hiking Adventure',
-      type: 'hiking',
-      difficulty: 'moderate',
-      duration: 6,
-      price: 65,
-      rating: 4.7,
-      image: '/images/activities/hiking-1.jpg',
-    },
-    {
-      id: '3',
-      slug: 'photography-workshop',
-      title: 'Wildlife Photography Workshop',
-      type: 'photography',
-      difficulty: 'easy',
-      duration: 3,
-      price: 95,
-      rating: 4.8,
-      image: '/images/activities/photo-1.jpg',
-    },
-  ];
+  try {
+    const activities = await prisma.activity.findMany({
+      where: {
+        id: { not: currentActivityId },
+        type: type as any, // Match the same type
+        bookable: true
+      },
+      include: {
+        images: {
+          take: 1,
+          orderBy: { order: 'asc' }
+        }
+      },
+      take: 3,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return activities.map(activity => ({
+      id: activity.id,
+      slug: activity.slug,
+      title: activity.name,
+      type: activity.type.toLowerCase(),
+      difficulty: activity.difficulty,
+      duration: activity.duration,
+      price: Number(activity.price),
+      rating: 4.5, // This would come from a reviews table if implemented
+      image: activity.images[0]?.url || '/images/activities/default.jpg',
+    }));
+  } catch (error) {
+    console.error('Error fetching similar activities:', error);
+    return [];
+  }
 };
 
 interface PageProps {

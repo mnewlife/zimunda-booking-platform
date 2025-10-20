@@ -4,7 +4,7 @@ import type { Session } from "@/lib/auth/types";
 import env from "@/env";
 import { AUTHENTICATED_URL } from "@/constant";
 
-const authRoutes = ["/login", "/sign-up"];
+const authRoutes = ["/login", "/register"];
 const protectedRoutesPrefix = "/app";
 
 export default async function authMiddleware(request: NextRequest) {

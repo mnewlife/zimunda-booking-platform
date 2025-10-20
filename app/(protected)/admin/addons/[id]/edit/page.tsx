@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { redirect, notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,7 +28,7 @@ export default async function EditAddonPage({ params }: EditAddonPageProps) {
   const session = await getServerSession(authOptions);
   
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect('/login');
   }
 
   if (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER') {

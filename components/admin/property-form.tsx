@@ -43,7 +43,7 @@ import { toast } from 'sonner';
 import { Loader2, Plus, X, Upload, MapPin } from 'lucide-react';
 import { PropertyType, PropertyStatus } from '@prisma/client';
 import { createProperty, updateProperty } from '@/lib/actions/property-actions';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 // Fetch amenities function
 async function getAmenities() {
@@ -282,7 +282,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>Property Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Beautiful Cottage" {...field} />
+                          <Input className="bg-white" placeholder="Beautiful Cottage" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -316,16 +316,16 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe the property, its features, and what makes it special..."
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe the property, its features, and what makes it special..."
+                        className="bg-white min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                   )}
                 />
 
@@ -338,6 +338,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormLabel>Max Occupancy</FormLabel>
                         <FormControl>
                           <Input
+                            className="bg-white"
                             type="number"
                             min="1"
                             max="20"
@@ -357,6 +358,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormLabel>Base Price (USD/night)</FormLabel>
                         <FormControl>
                           <Input
+                            className="bg-white"
                             type="number"
                             min="1"
                             step="0.01"
@@ -401,7 +403,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                     <FormItem>
                       <FormLabel>Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="123 Main Street" {...field} />
+                        <Input className="bg-white" placeholder="123 Main Street" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -415,7 +417,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>City</FormLabel>
                         <FormControl>
-                          <Input placeholder="Harare" {...field} />
+                          <Input className="bg-white" placeholder="Harare" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -428,7 +430,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>Country</FormLabel>
                         <FormControl>
-                          <Input placeholder="Zimbabwe" {...field} />
+                          <Input className="bg-white" placeholder="Zimbabwe" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -444,6 +446,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormLabel>Latitude (Optional)</FormLabel>
                         <FormControl>
                           <Input
+                            className="bg-white"
                             type="number"
                             step="any"
                             placeholder="-17.8252"
@@ -463,6 +466,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormLabel>Longitude (Optional)</FormLabel>
                         <FormControl>
                           <Input
+                            className="bg-white"
                             type="number"
                             step="any"
                             placeholder="31.0335"
@@ -504,6 +508,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                                   >
                                     <FormControl>
                                       <Checkbox
+                                        className="bg-white"
                                         checked={field.value?.includes(amenity.id)}
                                         onCheckedChange={(checked) => {
                                           return checked
@@ -541,7 +546,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>Check-in Time</FormLabel>
                         <FormControl>
-                          <Input placeholder="15:00" {...field} />
+                          <Input className="bg-white" placeholder="15:00" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -554,7 +559,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>Check-out Time</FormLabel>
                         <FormControl>
-                          <Input placeholder="11:00" {...field} />
+                          <Input className="bg-white" placeholder="11:00" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -570,6 +575,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormLabel>Cancellation Policy</FormLabel>
                       <FormControl>
                         <Textarea
+                          className="bg-white"
                           placeholder="Free cancellation up to 24 hours before check-in"
                           {...field}
                         />
@@ -589,6 +595,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                           <FormControl>
                             <Checkbox
+                              className="bg-white"
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
@@ -604,6 +611,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                           <FormControl>
                             <Checkbox
+                              className="bg-white"
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
@@ -619,11 +627,12 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
                           <FormControl>
                             <Checkbox
+                              className="bg-white"
                               checked={field.value}
                               onCheckedChange={field.onChange}
                             />
                           </FormControl>
-                          <FormLabel>Parties Allowed</FormLabel>
+                          <FormLabel>Parties/Events Allowed</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -653,6 +662,7 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                   </div>
                   <div className="flex gap-2">
                     <Input
+                      className="bg-white"
                       placeholder="Add a custom rule"
                       value={newRule}
                       onChange={(e) => setNewRule(e.target.value)}
@@ -725,16 +735,19 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <Input
+                        className="bg-white"
                         placeholder="Image URL"
                         value={newImage.url}
                         onChange={(e) => setNewImage({ ...newImage, url: e.target.value })}
                       />
                       <Input
+                        className="bg-white"
                         placeholder="Alt text (optional)"
                         value={newImage.alt}
                         onChange={(e) => setNewImage({ ...newImage, alt: e.target.value })}
                       />
                       <Input
+                        className="bg-white"
                         placeholder="Caption (optional)"
                         value={newImage.caption}
                         onChange={(e) => setNewImage({ ...newImage, caption: e.target.value })}

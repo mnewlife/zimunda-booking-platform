@@ -43,7 +43,7 @@ import {
   Filter,
 } from 'lucide-react';
 import Link from 'next/link';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { ActivityType } from '@prisma/client';
 
 export const metadata: Metadata = {

@@ -46,7 +46,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { AdminSidebar } from '@/components/admin-sidebar';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 // Helper function to get status colors
 const getStatusColor = (status: string) => {
@@ -78,6 +78,10 @@ export const metadata: Metadata = {
 
 // Real database queries
 const getAdminStats = async () => {
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  
   const [totalBookings, totalUsers, totalProperties, totalActivities, revenueData] = await Promise.all([
     prisma.booking.count({
       where: { status: 'CONFIRMED' }
@@ -90,7 +94,7 @@ const getAdminStats = async () => {
       where: { 
         paymentStatus: 'COMPLETED',
         createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+          gte: currentMonthStart
         }
       }
     })
@@ -101,11 +105,23 @@ const getAdminStats = async () => {
     where: {
       paymentStatus: 'COMPLETED',
       createdAt: {
-        gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-        lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        gte: lastMonthStart,
+        lt: currentMonthStart
       }
     }
   });
+
+  // Calculate real occupancy rate
+  const totalPropertyDays = await prisma.property.count() * 30; // Approximate days in month
+  const occupiedDays = await prisma.booking.count({
+    where: {
+      status: 'CONFIRMED',
+      checkIn: {
+        gte: currentMonthStart
+      }
+    }
+  });
+  const occupancyRate = totalPropertyDays > 0 ? Math.round((occupiedDays / totalPropertyDays) * 100) : 0;
 
   const currentRevenue = revenueData._sum.totalPrice || 0;
   const previousRevenue = lastMonthRevenue._sum.totalPrice || 0;
@@ -118,31 +134,74 @@ const getAdminStats = async () => {
     totalProperties,
     totalActivities,
     monthlyGrowth: Math.round(monthlyGrowth * 10) / 10,
-    occupancyRate: 78 // Calculate based on actual data
+    occupancyRate
   };
 };
 
 const getRevenueData = async () => {
-  return [
-    { month: 'Jan', revenue: 4200, bookings: 18 },
-    { month: 'Feb', revenue: 3800, bookings: 16 },
-    { month: 'Mar', revenue: 5200, bookings: 22 },
-    { month: 'Apr', revenue: 4600, bookings: 20 },
-    { month: 'May', revenue: 6100, bookings: 26 },
-    { month: 'Jun', revenue: 5800, bookings: 24 },
-    { month: 'Jul', revenue: 7200, bookings: 30 },
-    { month: 'Aug', revenue: 6800, bookings: 28 },
-    { month: 'Sep', revenue: 5900, bookings: 25 },
-    { month: 'Oct', revenue: 6400, bookings: 27 },
-    { month: 'Nov', revenue: 5600, bookings: 23 },
-    { month: 'Dec', revenue: 7100, bookings: 29 },
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+
+  const revenueData = await Promise.all(
+    months.map(async (month, index) => {
+      const monthStart = new Date(currentYear, index, 1);
+      const monthEnd = new Date(currentYear, index + 1, 0, 23, 59, 59);
+
+      const [revenueResult, bookingsCount] = await Promise.all([
+        prisma.booking.aggregate({
+          _sum: { totalPrice: true },
+          where: {
+            paymentStatus: 'COMPLETED',
+            createdAt: {
+              gte: monthStart,
+              lte: monthEnd
+            }
+          }
+        }),
+        prisma.booking.count({
+          where: {
+            status: 'CONFIRMED',
+            createdAt: {
+              gte: monthStart,
+              lte: monthEnd
+            }
+          }
+        })
+      ]);
+
+      return {
+        month,
+        revenue: Number(revenueResult._sum.totalPrice || 0),
+        bookings: bookingsCount
+      };
+    })
+  );
+
+  return revenueData;
 };
 
 const getBookingsByType = async () => {
+  const [propertyBookings, activityBookings] = await Promise.all([
+    prisma.booking.count({
+      where: {
+        propertyId: { not: null },
+        status: 'CONFIRMED'
+      }
+    }),
+    prisma.activityBooking.count({
+      where: {
+        status: 'CONFIRMED'
+      }
+    })
+  ]);
+
   return [
-    { name: 'Properties', value: 180, color: '#3B82F6' },
-    { name: 'Activities', value: 54, color: '#10B981' },
+    { name: 'Properties', value: propertyBookings, color: '#3B82F6' },
+    { name: 'Activities', value: activityBookings, color: '#10B981' },
   ];
 };
 
@@ -176,27 +235,28 @@ const getRecentBookings = async () => {
 
   return bookings.map(booking => ({
     id: booking.id,
-    type: booking.type,
-    customer: booking.guest.name || 'Unknown',
-      email: booking.guest.email,
-    property: booking.property?.name || (booking.activities?.[0]?.activity?.name) || 'Unknown',
+    customerName: booking.guest.name || 'Unknown',
+    customerEmail: booking.guest.email,
+    propertyName: booking.property?.name,
+    activityName: booking.activities?.[0]?.activity?.name,
     checkIn: booking.checkIn?.toISOString().split('T')[0] || null,
     checkOut: booking.checkOut?.toISOString().split('T')[0] || null,
-    date: booking.date?.toISOString().split('T')[0] || null,
-    guests: booking.guests || 1,
-    amount: booking.totalPrice,
+    totalPrice: Number(booking.totalPrice),
     status: booking.status,
     paymentStatus: booking.paymentStatus,
+    type: booking.propertyId ? 'property' : 'activity',
+    guests: booking.adults + booking.children,
     createdAt: booking.createdAt.toISOString(),
   }));
 };
 
 const getProperties = async () => {
-  return await prisma.property.findMany({
+  const properties = await prisma.property.findMany({
     include: {
       bookings: {
         where: {
-          status: 'CONFIRMED'
+          status: 'CONFIRMED',
+          paymentStatus: 'COMPLETED'
         }
       },
       images: {
@@ -204,14 +264,42 @@ const getProperties = async () => {
       }
     }
   });
+
+  return properties.map(property => {
+    const totalRevenue = property.bookings.reduce((sum, booking) => sum + Number(booking.totalPrice), 0);
+    const totalBookings = property.bookings.length;
+    const averageRating = 4.5; // This would come from a reviews table if implemented
+    
+    // Calculate occupancy rate for this property
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const occupancyRate = Math.round((totalBookings / daysInMonth) * 100);
+
+    return {
+      id: property.id,
+      name: property.name,
+      type: property.type,
+      location: typeof property.location === 'object' ? 
+        `${property.location.city || ''}, ${property.location.state || ''}`.trim().replace(/^,\s*/, '') : 
+        'Location not specified',
+      price: Number(property.basePrice),
+      status: property.status.toLowerCase(),
+      image: property.images[0]?.url || '/placeholder-property.jpg',
+      bookings: totalBookings,
+      revenue: totalRevenue,
+      rating: averageRating,
+      occupancy: `${occupancyRate}%`
+    };
+  });
 };
 
 const getUsers = async () => {
-  return await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     include: {
       bookings: {
         where: {
-          status: 'CONFIRMED'
+          status: 'CONFIRMED',
+          paymentStatus: 'COMPLETED'
         }
       }
     },
@@ -220,6 +308,74 @@ const getUsers = async () => {
     },
     take: 20
   });
+
+  return users.map(user => {
+    const totalSpent = user.bookings.reduce((sum, booking) => sum + Number(booking.totalPrice), 0);
+    const totalBookings = user.bookings.length;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role.toLowerCase(),
+      joinDate: user.createdAt,
+      totalBookings,
+      totalSpent,
+      status: 'active' // This would come from user status field if implemented
+    };
+  });
+};
+
+const getAnalyticsData = async () => {
+  const [allBookings, cancelledBookings, usersWithMultipleBookings, totalUsers] = await Promise.all([
+    prisma.booking.findMany({
+      where: {
+        status: { in: ['CONFIRMED', 'COMPLETED'] },
+        paymentStatus: 'COMPLETED'
+      },
+      select: {
+        totalPrice: true,
+        guestId: true
+      }
+    }),
+    prisma.booking.count({
+      where: { status: 'CANCELLED' }
+    }),
+    prisma.user.findMany({
+      include: {
+        _count: {
+          select: {
+            bookings: {
+              where: {
+                status: 'CONFIRMED',
+                paymentStatus: 'COMPLETED'
+              }
+            }
+          }
+        }
+      }
+    }),
+    prisma.booking.count()
+  ]);
+
+  // Calculate average booking value
+  const totalRevenue = allBookings.reduce((sum, booking) => sum + Number(booking.totalPrice), 0);
+  const averageBookingValue = allBookings.length > 0 ? Math.round(totalRevenue / allBookings.length) : 0;
+
+  // Calculate repeat customer rate
+  const repeatCustomers = usersWithMultipleBookings.filter(user => user._count.bookings > 1).length;
+  const totalCustomers = usersWithMultipleBookings.filter(user => user._count.bookings > 0).length;
+  const repeatCustomerRate = totalCustomers > 0 ? Math.round((repeatCustomers / totalCustomers) * 100) : 0;
+
+  // Calculate cancellation rate
+  const totalBookingsCount = totalUsers;
+  const cancellationRate = totalBookingsCount > 0 ? Math.round((cancelledBookings / totalBookingsCount) * 100) : 0;
+
+  return {
+    averageBookingValue,
+    repeatCustomerRate,
+    cancellationRate
+  };
 };
 
 
@@ -239,6 +395,7 @@ export default async function AdminDashboardPage() {
   const recentBookings = await getRecentBookings();
   const properties = await getProperties();
   const users = await getUsers();
+  const analyticsData = await getAnalyticsData();
 
   const adminUser = {
     name: session.user.name || 'Admin',
@@ -726,7 +883,7 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Average Booking Value</p>
-                      <p className="text-2xl font-bold text-gray-900">$195</p>
+                      <p className="text-2xl font-bold text-gray-900">${analyticsData.averageBookingValue}</p>
                     </div>
                     <div className="text-green-600">
                       <TrendingUp className="h-6 w-6" />
@@ -738,7 +895,7 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Repeat Customer Rate</p>
-                      <p className="text-2xl font-bold text-gray-900">34%</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.repeatCustomerRate}%</p>
                     </div>
                     <div className="text-green-600">
                       <TrendingUp className="h-6 w-6" />
@@ -748,10 +905,10 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Cancellation Rate</p>
-                      <p className="text-2xl font-bold text-gray-900">8%</p>
+                      <p className="text-2xl font-bold text-gray-900">{analyticsData.cancellationRate}%</p>
                     </div>
-                    <div className="text-red-600">
-                      <TrendingUp className="h-6 w-6 transform rotate-180" />
+                    <div className={analyticsData.cancellationRate > 10 ? "text-red-600" : "text-green-600"}>
+                      <TrendingUp className={`h-6 w-6 ${analyticsData.cancellationRate > 10 ? 'transform rotate-180' : ''}`} />
                     </div>
                   </div>
                 </CardContent>

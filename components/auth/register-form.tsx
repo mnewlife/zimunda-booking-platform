@@ -21,7 +21,7 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
   acceptTerms: z.boolean().refine(val => val === true, {
-    message: 'You must accept the terms and conditions',
+    message: 'Please accept the Terms of Service and Privacy Policy to continue',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -45,6 +45,9 @@ export function RegisterForm() {
     watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      acceptTerms: false,
+    },
   });
 
   const acceptTerms = watch('acceptTerms');
@@ -95,7 +98,7 @@ export function RegisterForm() {
             type="text"
             placeholder="Enter your full name"
             {...register('name')}
-            className={errors.name ? 'border-red-500' : ''}
+            className={errors.name ? 'bg-white border-red-500' : 'bg-white'}
           />
           {errors.name && (
             <p className="text-sm text-red-500">{errors.name.message}</p>
@@ -109,7 +112,7 @@ export function RegisterForm() {
             type="email"
             placeholder="Enter your email"
             {...register('email')}
-            className={errors.email ? 'border-red-500' : ''}
+            className={errors.email ? 'bg-white border-red-500' : 'bg-white'}
           />
           {errors.email && (
             <p className="text-sm text-red-500">{errors.email.message}</p>
@@ -123,7 +126,7 @@ export function RegisterForm() {
             type="tel"
             placeholder="Enter your phone number"
             {...register('phone')}
-            className={errors.phone ? 'border-red-500' : ''}
+            className={errors.phone ? 'bg-white border-red-500' : 'bg-white'}
           />
           {errors.phone && (
             <p className="text-sm text-red-500">{errors.phone.message}</p>
@@ -138,7 +141,7 @@ export function RegisterForm() {
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a password"
               {...register('password')}
-              className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
+              className={errors.password ? 'bg-white border-red-500 pr-10' : 'bg-white pr-10'}
             />
             <button
               type="button"
@@ -165,7 +168,7 @@ export function RegisterForm() {
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Confirm your password"
               {...register('confirmPassword')}
-              className={errors.confirmPassword ? 'border-red-500 pr-10' : 'pr-10'}
+              className={errors.confirmPassword ? 'bg-white border-red-500 pr-10' : 'bg-white pr-10'}
             />
             <button
               type="button"
@@ -188,6 +191,8 @@ export function RegisterForm() {
           <Checkbox
             id="acceptTerms"
             checked={acceptTerms}
+            {...register('acceptTerms')}
+            className={errors.acceptTerms ? 'bg-white border border-red-500' : 'bg-white border border-gray-600'}
             onCheckedChange={(checked) => setValue('acceptTerms', checked as boolean)}
           />
           <Label htmlFor="acceptTerms" className="text-sm text-gray-600">

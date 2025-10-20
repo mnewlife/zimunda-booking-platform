@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, Mountain, User, LogOut, Settings, Calendar, ShoppingBag } from "lucide-react";
+import { Menu, Mountain, User, LogOut, Settings, Calendar } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { CartIcon } from "@/components/cart/cart-icon";
 
@@ -101,12 +101,7 @@ export function Header() {
                       <span>My Bookings</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders" className="flex items-center">
-                      <ShoppingBag className="mr-2 h-4 w-4" />
-                      <span>My Orders</span>
-                    </Link>
-                  </DropdownMenuItem>
+
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="flex items-center">
                       <Settings className="mr-2 h-4 w-4" />
@@ -123,10 +118,10 @@ export function Header() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button asChild variant="ghost" size="sm">
-                  <Link href="/auth/signin">Sign In</Link>
+                  <Link href="/login">Sign In</Link>
                 </Button>
                 <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
-                  <Link href="/auth/signup">Sign Up</Link>
+                  <Link href="/register">Sign Up</Link>
                 </Button>
               </div>
             )}
@@ -176,13 +171,7 @@ export function Header() {
                         >
                           My Bookings
                         </Link>
-                        <Link
-                          href="/orders"
-                          className="block text-lg font-medium text-gray-700 hover:text-green-600 transition-colors"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          My Orders
-                        </Link>
+
                         <Button
                           onClick={() => {
                             handleSignOut();
@@ -197,12 +186,12 @@ export function Header() {
                     ) : (
                       <div className="space-y-2">
                         <Button asChild variant="outline" className="w-full">
-                          <Link href="/auth/signin" onClick={() => setIsOpen(false)}>
+                          <Link href="/login" onClick={() => setIsOpen(false)}>
                             Sign In
                           </Link>
                         </Button>
                         <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                          <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
+                          <Link href="/register" onClick={() => setIsOpen(false)}>
                             Sign Up
                           </Link>
                         </Button>

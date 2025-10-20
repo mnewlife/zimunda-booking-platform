@@ -67,7 +67,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { AdminSidebar } from '@/components/admin-sidebar';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { PropertyType, PropertyStatus } from '@prisma/client';
 
 export const metadata: Metadata = {
