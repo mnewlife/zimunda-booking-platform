@@ -75,7 +75,6 @@ const getSimilarActivities = async (currentActivityId: string, type: string) => 
       duration: 6,
       price: 65,
       rating: 4.7,
-      reviewCount: 89,
       image: '/images/activities/hiking-1.jpg',
     },
     {
@@ -87,7 +86,6 @@ const getSimilarActivities = async (currentActivityId: string, type: string) => 
       duration: 3,
       price: 95,
       rating: 4.8,
-      reviewCount: 56,
       image: '/images/activities/photo-1.jpg',
     },
   ];

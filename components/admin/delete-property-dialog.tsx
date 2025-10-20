@@ -61,7 +61,7 @@ export function DeletePropertyDialog({
           <AlertDialogDescription>
             Are you sure you want to delete <strong>{propertyName}</strong>?
             This action cannot be undone and will permanently remove the property
-            and all associated data including bookings, images, and reviews.
+            and all associated data including bookings and images.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

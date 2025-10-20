@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { paymentService } from '@/lib/payment-service';
 import { z } from 'zod';
 import { BookingStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
 
@@ -9,11 +8,10 @@ function mapPaymentMethod(paymentMethod: string): PaymentMethod {
   const methodMap: Record<string, PaymentMethod> = {
     'cash': PaymentMethod.CASH,
     'bank_transfer': PaymentMethod.BANK_TRANSFER,
-    'paynow': PaymentMethod.PAYNOW,
-    'card': PaymentMethod.PAYNOW, // Map card to PAYNOW for now
+    'stripe': PaymentMethod.STRIPE,
     'CASH': PaymentMethod.CASH,
     'BANK_TRANSFER': PaymentMethod.BANK_TRANSFER,
-    'PAYNOW': PaymentMethod.PAYNOW,
+    'STRIPE': PaymentMethod.STRIPE,
   };
   
   return methodMap[paymentMethod] || PaymentMethod.CASH;
@@ -32,9 +30,8 @@ const publicActivityBookingSchema = z.object({
     phone: z.string().min(1, 'Phone number is required'),
     specialRequests: z.string().optional(),
   }),
-  paymentMethod: z.enum(['cash', 'paynow', 'bank_transfer']),
+  paymentMethod: z.enum(['cash', 'bank_transfer', 'stripe']),
   paymentDetails: z.object({
-    paynowPhone: z.string().optional(),
     bankReference: z.string().optional(),
   }).optional(),
 });
@@ -189,16 +186,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Handle payment processing based on method
-    if (validatedData.paymentMethod === 'paynow') {
-      // For PayNow, we'll mark as pending and provide QR code
-      return NextResponse.json({
-        success: true,
-        booking: completeBooking,
-        paymentMethod: 'paynow',
-        qrCode: `paynow://pay?amount=${totalAmount}&ref=${completeBooking.id}`,
-        message: 'Booking created successfully. Please complete payment via PayNow.',
-      });
-    } else if (validatedData.paymentMethod === 'bank_transfer') {
+    if (validatedData.paymentMethod === 'bank_transfer') {
       // For bank transfer, provide bank details
       return NextResponse.json({
         success: true,
@@ -219,6 +207,14 @@ export async function POST(request: NextRequest) {
         booking: completeBooking,
         paymentMethod: 'cash',
         message: 'Booking created successfully. Payment will be collected on-site.',
+      });
+    } else if (validatedData.paymentMethod === 'stripe') {
+      // For Stripe payments, return booking data for checkout session creation
+      return NextResponse.json({
+        success: true,
+        booking: completeBooking,
+        paymentMethod: 'stripe',
+        message: 'Booking created successfully. Proceed to payment.',
       });
     } else {
       // For other payment methods

@@ -17,8 +17,6 @@ interface ProductDetailsProps {
     isFeatured: boolean;
     specifications?: Record<string, any>;
     features?: string[];
-    averageRating: number;
-    totalReviews: number;
     totalSales: number;
     inStock: boolean;
     variants?: Array<{
@@ -91,30 +89,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           </div>
         </div>
 
-        {/* Rating and Reviews */}
-        {(product.averageRating || product.totalReviews || product.totalSales > 0) && (
+        {/* Sales Info */}
+        {product.totalSales > 0 && (
           <div className="flex items-center gap-4">
-            {product.averageRating && (
-              <div className="flex items-center gap-1">
-                {renderStars(product.averageRating)}
-                <span className="text-sm font-medium text-gray-900 ml-1">
-                  {product.averageRating.toFixed(1)}
-                </span>
-              </div>
-            )}
-            {product.totalReviews && (
-              <span className="text-sm text-gray-600">
-                ({product.totalReviews} {product.totalReviews === 1 ? 'review' : 'reviews'})
-              </span>
-            )}
-            {product.totalSales > 0 && (
-              <>
-                {(product.averageRating || product.totalReviews) && <span className="text-gray-300">•</span>}
-                <span className="text-sm text-gray-600">
-                  {product.totalSales} sold
-                </span>
-              </>
-            )}
+            <span className="text-sm text-gray-600">
+              {product.totalSales} sold
+            </span>
           </div>
         )}
 

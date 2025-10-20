@@ -45,7 +45,7 @@ const bookingSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   phone: z.string().min(10, 'Please enter a valid phone number'),
   specialRequests: z.string().optional(),
-  paymentMethod: z.enum(['card', 'paynow', 'bank_transfer'], {
+  paymentMethod: z.enum(['bank_transfer', 'stripe'], {
     required_error: 'Please select a payment method',
   }),
   agreeToTerms: z.boolean().refine(val => val === true, {
@@ -115,7 +115,7 @@ export function BookingWizard({ property, initialBookingData, bookedDates }: Boo
       email: '',
       phone: '',
       specialRequests: '',
-      paymentMethod: 'card',
+      paymentMethod: 'bank_transfer',
       agreeToTerms: false,
     },
   });
@@ -209,12 +209,8 @@ export function BookingWizard({ property, initialBookingData, bookedDates }: Boo
 
       const booking = await response.json();
       
-      // Redirect to payment or confirmation page
-      if (data.paymentMethod === 'card') {
-        router.push(`/payment?booking=${booking.id}`);
-      } else {
-        router.push(`/booking-confirmation?booking=${booking.id}`);
-      }
+      // Redirect to confirmation page
+      router.push(`/booking-confirmation?booking=${booking.id}`);
     } catch (error) {
       console.error('Booking error:', error);
       // Handle error (show toast, etc.)
@@ -410,33 +406,6 @@ export function BookingWizard({ property, initialBookingData, bookedDates }: Boo
                 <h3 className="text-lg font-medium mb-4">Payment Method</h3>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="card"
-                      value="card"
-                      {...form.register('paymentMethod')}
-                      className="w-4 h-4 text-green-600"
-                    />
-                    <Label htmlFor="card" className="flex items-center space-x-2 cursor-pointer">
-                      <CreditCard className="h-4 w-4" />
-                      <span>Credit/Debit Card</span>
-                    </Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="paynow"
-                      value="paynow"
-                      {...form.register('paymentMethod')}
-                      className="w-4 h-4 text-green-600"
-                    />
-                    <Label htmlFor="paynow" className="flex items-center space-x-2 cursor-pointer">
-                      <Phone className="h-4 w-4" />
-                      <span>Paynow (Mobile Money)</span>
-                    </Label>
-                  </div>
                   
                   <div className="flex items-center space-x-2">
                     <input

@@ -46,14 +46,7 @@ export function CheckoutForm({
     } else if (step === 2) {
       // Validate payment information
       const { payment } = formData;
-      if (payment.method === 'card') {
-        if (!payment.cardNumber) newErrors.cardNumber = 'Card number is required';
-        if (!payment.expiryDate) newErrors.expiryDate = 'Expiry date is required';
-        if (!payment.cvv) newErrors.cvv = 'CVV is required';
-        if (!payment.cardName) newErrors.cardName = 'Cardholder name is required';
-      } else if (payment.method === 'paynow') {
-        if (!payment.paynowNumber) newErrors.paynowNumber = 'Paynow number is required';
-      }
+      // No additional validation needed for stripe and bank_transfer methods
     }
 
     setErrors(newErrors);
@@ -78,7 +71,7 @@ export function CheckoutForm({
     }
   };
 
-  const formatCardNumber = (value: string) => {
+  /*const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
     const matches = v.match(/\d{4,16}/g);
     const match = matches && matches[0] || '';
@@ -99,7 +92,7 @@ export function CheckoutForm({
       return v.substring(0, 2) + '/' + v.substring(2, 4);
     }
     return v;
-  };
+  };*/
 
   if (currentStep === 1) {
     return (
@@ -280,19 +273,13 @@ export function CheckoutForm({
               onValueChange={(value) => handleInputChange('payment', 'method', value)}
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="card" id="card" />
-                <Label htmlFor="card" className="flex items-center">
+                <RadioGroupItem value="stripe" id="stripe" />
+                <Label htmlFor="stripe" className="flex items-center">
                   <CreditCard className="h-4 w-4 mr-2" />
-                  Credit/Debit Card
+                  Pay with Stripe (Secure)
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="paynow" id="paynow" />
-                <Label htmlFor="paynow" className="flex items-center">
-                  <Smartphone className="h-4 w-4 mr-2" />
-                  Paynow
-                </Label>
-              </div>
+
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="bank_transfer" id="bank_transfer" />
                 <Label htmlFor="bank_transfer" className="flex items-center">
@@ -302,89 +289,9 @@ export function CheckoutForm({
               </div>
             </RadioGroup>
 
-            {formData.payment.method === 'card' && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="cardNumber">Card Number *</Label>
-                  <Input
-                    id="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    value={formData.payment.cardNumber}
-                    onChange={(e) => 
-                      handleInputChange('payment', 'cardNumber', formatCardNumber(e.target.value))
-                    }
-                    maxLength={19}
-                    className={cn(errors.cardNumber && 'border-red-500')}
-                  />
-                  {errors.cardNumber && (
-                    <p className="text-sm text-red-500 mt-1">{errors.cardNumber}</p>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="expiryDate">Expiry Date *</Label>
-                    <Input
-                      id="expiryDate"
-                      placeholder="MM/YY"
-                      value={formData.payment.expiryDate}
-                      onChange={(e) => 
-                        handleInputChange('payment', 'expiryDate', formatExpiryDate(e.target.value))
-                      }
-                      maxLength={5}
-                      className={cn(errors.expiryDate && 'border-red-500')}
-                    />
-                    {errors.expiryDate && (
-                      <p className="text-sm text-red-500 mt-1">{errors.expiryDate}</p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="cvv">CVV *</Label>
-                    <Input
-                      id="cvv"
-                      placeholder="123"
-                      value={formData.payment.cvv}
-                      onChange={(e) => handleInputChange('payment', 'cvv', e.target.value)}
-                      maxLength={4}
-                      className={cn(errors.cvv && 'border-red-500')}
-                    />
-                    {errors.cvv && (
-                      <p className="text-sm text-red-500 mt-1">{errors.cvv}</p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="cardName">Cardholder Name *</Label>
-                  <Input
-                    id="cardName"
-                    value={formData.payment.cardName}
-                    onChange={(e) => handleInputChange('payment', 'cardName', e.target.value)}
-                    className={cn(errors.cardName && 'border-red-500')}
-                  />
-                  {errors.cardName && (
-                    <p className="text-sm text-red-500 mt-1">{errors.cardName}</p>
-                  )}
-                </div>
-              </div>
-            )}
 
-            {formData.payment.method === 'paynow' && (
-              <div>
-                <Label htmlFor="paynowNumber">Paynow Number *</Label>
-                <Input
-                  id="paynowNumber"
-                  placeholder="0771234567"
-                  value={formData.payment.paynowNumber}
-                  onChange={(e) => handleInputChange('payment', 'paynowNumber', e.target.value)}
-                  className={cn(errors.paynowNumber && 'border-red-500')}
-                />
-                {errors.paynowNumber && (
-                  <p className="text-sm text-red-500 mt-1">{errors.paynowNumber}</p>
-                )}
-                <p className="text-sm text-gray-600 mt-2">
-                  You will receive a payment request on your Paynow number.
-                </p>
-              </div>
-            )}
+
+
 
             {formData.payment.method === 'bank_transfer' && (
               <div className="bg-blue-50 p-4 rounded-lg">

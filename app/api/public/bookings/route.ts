@@ -7,10 +7,8 @@ function mapPaymentMethod(paymentMethod: string): PaymentMethod {
   const methodMap: Record<string, PaymentMethod> = {
     'cash': PaymentMethod.CASH,
     'bank_transfer': PaymentMethod.BANK_TRANSFER,
-    'paynow': PaymentMethod.PAYNOW,
     'CASH': PaymentMethod.CASH,
     'BANK_TRANSFER': PaymentMethod.BANK_TRANSFER,
-    'PAYNOW': PaymentMethod.PAYNOW,
   };
   
   return methodMap[paymentMethod] || PaymentMethod.CASH; // Default to CASH if invalid
@@ -134,6 +132,19 @@ export async function POST(request: NextRequest) {
           });
           
           if (activityData) {
+            // Check if this activity slot is already booked
+            const existingBooking = await tx.activityBooking.findFirst({
+              where: {
+                activityId: activity.activityId,
+                date: new Date(activity.date),
+                time: activity.time,
+              },
+            });
+
+            if (existingBooking) {
+              throw new Error(`Activity "${activityData.name}" is already booked for ${activity.date} at ${activity.time}. Please select a different time slot.`);
+            }
+
             await tx.activityBooking.create({
               data: {
                 bookingId: booking.id,
@@ -190,6 +201,13 @@ export async function POST(request: NextRequest) {
     
     // Handle specific transaction errors
     if (error instanceof Error) {
+      // Handle our custom activity booking conflict errors
+      if (error.message.includes('already booked for')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 409 }
+        );
+      }
       if (error.message.includes('Unique constraint')) {
         return NextResponse.json(
           { error: 'Booking conflict detected. Please try again.' },

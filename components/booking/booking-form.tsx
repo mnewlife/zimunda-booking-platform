@@ -33,6 +33,7 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { differenceInDays } from 'date-fns';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 const bookingSchema = z.object({
   checkIn: z.date().optional(),
@@ -53,7 +54,7 @@ const bookingSchema = z.object({
     time: z.string(),
     participants: z.number().min(1),
   })).optional(),
-  paymentMethod: z.enum(['card', 'paynow', 'bank_transfer'], {
+  paymentMethod: z.enum(['bank_transfer', 'stripe'], {
     required_error: 'Please select a payment method',
   }),
   agreeToTerms: z.boolean().refine(val => val === true, {
@@ -155,6 +156,14 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
     participants: number;
   }[]>([]);
 
+  // Helper function to format date for HTML date input without timezone issues
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Check if this is an activity-only booking
   const isActivityBooking = !property && activities.length > 0;
   
@@ -187,7 +196,7 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
       specialRequests: '',
       selectedAddOns: [],
       selectedActivities: [],
-      paymentMethod: 'card',
+      paymentMethod: 'bank_transfer',
       agreeToTerms: false,
       isActivityBooking,
     },
@@ -325,8 +334,25 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
         const result = await response.json();
         
         // Redirect to payment or confirmation page
-        if (data.paymentMethod === 'card') {
-          router.push(`/payment?booking=${result.booking.id}`);
+        if (data.paymentMethod === 'stripe') {
+          // Create Stripe checkout session
+          const stripeResponse = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bookingId: result.booking.id,
+            }),
+          });
+
+          if (!stripeResponse.ok) {
+            const errorData = await stripeResponse.json();
+            throw new Error(errorData.message || 'Failed to create Stripe checkout session');
+          }
+
+          const { url } = await stripeResponse.json();
+          window.location.href = url;
         } else {
           router.push(`/booking-confirmation?booking=${result.booking.id}`);
         }
@@ -369,21 +395,38 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
         });
 
         if (!response.ok) {
-          throw new Error('Failed to create booking');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create booking');
         }
 
         const booking = await response.json();
         
         // Redirect to payment or confirmation page
-        if (data.paymentMethod === 'card') {
-          router.push(`/payment?booking=${booking.id}`);
+        if (data.paymentMethod === 'stripe') {
+          // Create Stripe checkout session
+          const stripeResponse = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              bookingId: booking.id,
+            }),
+          });
+
+          if (!stripeResponse.ok) {
+            throw new Error('Failed to create Stripe checkout session');
+          }
+
+          const { url } = await stripeResponse.json();
+          window.location.href = url;
         } else {
           router.push(`/booking-confirmation?booking=${booking.id}`);
         }
       }
     } catch (error) {
       console.error('Booking error:', error);
-      // Handle error (show toast, etc.)
+      toast.error(error instanceof Error ? error.message : 'Failed to create booking');
     } finally {
       setIsLoading(false);
     }
@@ -667,9 +710,10 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
                             <Label className="text-xs">Date</Label>
                             <Input
                               type="date"
-                              value={selectedActivities.find(a => a.id === activity.id)?.date.toISOString().split('T')[0] || ''}
-                              min={selectedDates.checkIn ? selectedDates.checkIn.toISOString().split('T')[0] : ''}
-                              max={selectedDates.checkOut ? selectedDates.checkOut.toISOString().split('T')[0] : ''}
+                              value={selectedActivities.find(a => a.id === activity.id)?.date ? 
+                                formatDateForInput(selectedActivities.find(a => a.id === activity.id)!.date) : ''}
+                              min={selectedDates.checkIn ? formatDateForInput(selectedDates.checkIn) : ''}
+                              max={selectedDates.checkOut ? formatDateForInput(selectedDates.checkOut) : ''}
                               disabled={!selectedDates.checkIn || !selectedDates.checkOut}
                               onChange={(e) => {
                                 const newDate = new Date(e.target.value);
@@ -742,34 +786,21 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-3">
+                
                 <div className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    id="card"
-                    value="card"
+                    id="stripe"
+                    value="stripe"
                     {...form.register('paymentMethod')}
                     className="w-4 h-4 text-green-600"
                   />
-                  <Label htmlFor="card" className="flex items-center space-x-2 cursor-pointer">
+                  <Label htmlFor="stripe" className="flex items-center space-x-2 cursor-pointer">
                     <CreditCard className="h-4 w-4" />
-                    <span>Credit/Debit Card</span>
+                    <span>Pay with Stripe (Secure)</span>
                   </Label>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id="paynow"
-                    value="paynow"
-                    {...form.register('paymentMethod')}
-                    className="w-4 h-4 text-green-600"
-                  />
-                  <Label htmlFor="paynow" className="flex items-center space-x-2 cursor-pointer">
-                    <Phone className="h-4 w-4" />
-                    <span>Paynow (Mobile Money)</span>
-                  </Label>
-                </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <input
                     type="radio"

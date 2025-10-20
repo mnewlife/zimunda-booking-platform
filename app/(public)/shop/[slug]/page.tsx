@@ -5,7 +5,6 @@ import prisma from '@/lib/prisma';
 import { ProductGallery } from '@/components/product/product-gallery';
 import { ProductDetails } from '@/components/product/product-details';
 import { ProductPurchase } from '@/components/product/product-purchase';
-import { ProductReviews } from '@/components/product/product-reviews';
 import { ProductCard } from '@/components/product/product-card';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -236,30 +235,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </Suspense>
 
-        {/* Product Reviews */}
-        <div className="mb-16">
-          <Suspense fallback={
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-48" />
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          }>
-            <ProductReviews 
-              productId={product.id}
-              reviews={product.reviews}
-              averageRating={product.averageRating}
-              totalReviews={product.totalReviews}
-            />
-          </Suspense>
-        </div>
+
 
         {/* Similar Products */}
         {similarProducts.length > 0 && (

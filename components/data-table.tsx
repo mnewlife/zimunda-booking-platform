@@ -113,7 +113,6 @@ export const schema = z.object({
   status: z.string(),
   target: z.string(),
   limit: z.string(),
-  reviewer: z.string(),
 })
 
 // Create a separate component for the drag handle

@@ -326,7 +326,6 @@ export function CartSummary() {
             <div className="flex justify-center items-center gap-3">
               <div className="px-3 py-1 bg-gray-100 rounded text-xs font-medium">VISA</div>
               <div className="px-3 py-1 bg-gray-100 rounded text-xs font-medium">MASTERCARD</div>
-              <div className="px-3 py-1 bg-gray-100 rounded text-xs font-medium">PAYNOW</div>
               <div className="px-3 py-1 bg-gray-100 rounded text-xs font-medium">BANK TRANSFER</div>
             </div>
           </div>

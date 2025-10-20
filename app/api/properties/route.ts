@@ -135,8 +135,6 @@ export async function GET(request: NextRequest) {
     const orderBy: any = {};
     if (sortBy === 'price') {
       orderBy.pricePerNight = sortOrder;
-    } else if (sortBy === 'rating') {
-      orderBy.averageRating = sortOrder;
     } else if (sortBy === 'name') {
       orderBy.name = sortOrder;
     } else {
@@ -157,7 +155,6 @@ export async function GET(request: NextRequest) {
                 status: 'CONFIRMED',
               },
             },
-            reviews: true,
           },
         },
       },
@@ -171,7 +168,6 @@ export async function GET(request: NextRequest) {
       ...property,
       isAvailable: checkIn && checkOut ? true : undefined, // Already filtered above
       totalBookings: property._count.bookings,
-      totalReviews: property._count.reviews,
     }));
 
     return NextResponse.json({

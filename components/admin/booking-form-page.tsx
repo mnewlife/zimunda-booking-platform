@@ -50,7 +50,7 @@ const bookingFormSchema = z.object({
   children: z.number().min(0, 'Children count cannot be negative'),
   
   // Payment Information
-  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'PAYNOW']),
+  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER']),
   paymentStatus: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']),
   status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']),
   
@@ -682,7 +682,6 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                       <SelectContent>
                         <SelectItem value="CASH">Cash</SelectItem>
                         <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
-                        <SelectItem value="PAYNOW">PayNow</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

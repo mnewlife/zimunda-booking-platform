@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, ShoppingCart, Heart, Package, AlertCircle } from 'lucide-react';
+import { Star, ShoppingCart, Package, AlertCircle } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { cn } from '@/lib/utils';
 
@@ -27,8 +27,6 @@ interface Product {
   inventory: number;
   images: string[];
   variants?: ProductVariant[];
-  averageRating?: number;
-  totalReviews: number;
   totalSales: number;
   inStock: boolean;
   isActive: boolean;
@@ -42,9 +40,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const { addToCart } = useCart();
 
   const handleImageError = () => {
@@ -65,13 +61,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     setIsLoading(false);
   };
 
-  const handleToggleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setIsWishlisted(!isWishlisted);
-    // Add wishlist logic here
-  };
+
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -154,17 +144,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             )}
           </div>
           
-          {/* Wishlist Button */}
-          <button
-            onClick={handleToggleWishlist}
-            className={cn(
-              "absolute top-3 right-3 p-2 rounded-full transition-all duration-200",
-              "bg-white/80 hover:bg-white shadow-sm",
-              isWishlisted ? "text-red-500" : "text-gray-600 hover:text-red-500"
-            )}
-          >
-            <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
-          </button>
+
           
           {/* Image Indicators */}
           {product.images && product.images.length > 1 && (
@@ -200,27 +180,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             {product.description}
           </p>
           
-          {/* Rating and Reviews */}
-          {product.averageRating && product.totalReviews > 0 && (
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex items-center">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={cn(
-                      "h-4 w-4",
-                      i < Math.floor(product.averageRating!)
-                        ? "text-yellow-400 fill-current"
-                        : "text-gray-300"
-                    )}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-600">
-                ({product.totalReviews})
-              </span>
-            </div>
-          )}
+
           
           {/* Price */}
           <div className="flex items-center justify-between mb-3">

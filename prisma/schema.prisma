@@ -339,7 +339,10 @@ model Payment {
   currency          String        @default("USD")
   method            PaymentMethod
   status            PaymentStatus
-  externalReference String? // Paynow poll URL
+  externalReference String? // External payment reference
+  stripePaymentIntentId String? // Stripe Payment Intent ID
+  stripeCustomerId  String? // Stripe Customer ID
+  stripeSessionId   String? // Stripe Checkout Session ID
   completedAt       DateTime?
   notes             String?
   receivedBy        String? // Staff ID for offline payments
@@ -349,7 +352,7 @@ model Payment {
 
 model WebhookLog {
   id        String   @id @default(cuid())
-  provider  String // paynow, stripe, etc.
+  provider  String // payment provider
   payload   Json
   response  Json?
   processed Boolean  @default(false)
@@ -404,7 +407,7 @@ enum BookingStatus {
 enum PaymentMethod {
   CASH
   BANK_TRANSFER
-  PAYNOW
+  STRIPE
 }
 
 enum PaymentStatus {

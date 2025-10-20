@@ -105,7 +105,6 @@ export async function GET(request: NextRequest) {
     const orderBy: any = {};
     if (sortBy === 'price') {
       orderBy.price = sortOrder;
-    // Remove rating sort as averageRating doesn't exist
     } else if (sortBy === 'name') {
       orderBy.name = sortOrder;
     } else if (sortBy === 'duration') {

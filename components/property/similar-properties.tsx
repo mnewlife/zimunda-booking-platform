@@ -39,8 +39,6 @@ interface Property {
     id: string;
     name: string;
   }[];
-  averageRating?: number;
-  reviewCount?: number;
 }
 
 interface SimilarPropertiesProps {
@@ -178,14 +176,7 @@ function SimilarPropertyCard({ property }: { property: Property }) {
             <span className="line-clamp-1">{property.address}</span>
           </div>
           
-          {/* Rating */}
-          {property.averageRating && property.reviewCount && (
-            <div className="flex items-center space-x-1 mb-2">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium">{property.averageRating.toFixed(1)}</span>
-              <span className="text-sm text-gray-500">({property.reviewCount})</span>
-            </div>
-          )}
+
         </div>
 
         {/* Property Details */}

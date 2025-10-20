@@ -5,7 +5,6 @@ import { PropertyGallery } from '@/components/property/property-gallery';
 import { PropertyDetails } from '@/components/property/property-details';
 import { PropertyBooking } from '@/components/property/property-booking';
 import { PropertyAmenities } from '@/components/property/property-amenities';
-import { PropertyReviews } from '@/components/property/property-reviews';
 import { PropertyLocation } from '@/components/property/property-location';
 import { SimilarProperties } from '@/components/property/similar-properties';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -179,9 +178,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
                 location: property.location
               }}
             />
-            {/*<PropertyReviews 
-              propertyId={property.id}
-            />*/}
+
           </div>
 
           {/* Right Column - Booking Widget */}

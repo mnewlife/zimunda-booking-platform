@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, Plus, Minus, ShoppingBag, Heart } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -76,36 +76,7 @@ export function CartContent() {
     });
   };
 
-  const moveToWishlist = async (item: CartItem) => {
-    try {
-      // Add to wishlist
-      const wishlistResponse = await fetch('/api/wishlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: item.productId,
-        }),
-      });
 
-      if (wishlistResponse.ok) {
-        // Remove from cart
-        await removeItem(item.id);
-        
-        toast({
-          title: "Moved to Wishlist",
-          description: "Item has been moved to your wishlist.",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to move item to wishlist.",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -280,17 +251,7 @@ export function CartContent() {
                           </Button>
                         </div>
 
-                        {/* Move to Wishlist */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => moveToWishlist(item)}
-                          disabled={isUpdating}
-                          className="text-gray-600 hover:text-primary"
-                        >
-                          <Heart className="h-4 w-4 mr-1" />
-                          Save for Later
-                        </Button>
+
                       </div>
 
                       {/* Price */}

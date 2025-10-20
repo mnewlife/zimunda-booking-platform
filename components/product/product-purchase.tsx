@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ShoppingCart, Minus, Plus, Truck, Shield } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, Truck, Shield } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -32,8 +32,6 @@ export function ProductPurchase({ product }: ProductPurchaseProps) {
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
-  const [isInWishlist, setIsInWishlist] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -91,41 +89,7 @@ export function ProductPurchase({ product }: ProductPurchaseProps) {
     setIsAddingToCart(false);
   };
 
-  const handleAddToWishlist = async () => {
-    setIsAddingToWishlist(true);
 
-    try {
-      const response = await fetch('/api/wishlist', {
-        method: isInWishlist ? 'DELETE' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          productId: product.id,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update wishlist');
-      }
-
-      setIsInWishlist(!isInWishlist);
-      toast({
-        title: isInWishlist ? "Removed from Wishlist" : "Added to Wishlist",
-        description: isInWishlist 
-          ? "Item removed from your wishlist." 
-          : "Item added to your wishlist.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update wishlist. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAddingToWishlist(false);
-    }
-  };
 
   const handleBuyNow = () => {
     if (!isAvailable()) {
@@ -275,18 +239,6 @@ export function ProductPurchase({ product }: ProductPurchaseProps) {
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               {isAddingToCart ? 'Adding...' : 'Add to Cart'}
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleAddToWishlist}
-              disabled={isAddingToWishlist}
-            >
-              <Heart className={cn(
-                "h-4 w-4 mr-2",
-                isInWishlist && "fill-red-500 text-red-500"
-              )} />
-              {isAddingToWishlist ? 'Saving...' : (isInWishlist ? 'Saved' : 'Save')}
             </Button>
           </div>
         </div>

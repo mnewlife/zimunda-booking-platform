@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { paymentService } from '@/lib/payment-service';
 import { z } from 'zod';
 import { headers } from 'next/headers';
 
@@ -17,10 +16,8 @@ const activityBookingSchema = z.object({
     phone: z.string().min(1, 'Phone number is required'),
     specialRequests: z.string().optional(),
   }),
-  paymentMethod: z.enum(['card', 'paynow', 'bank_transfer']),
+  paymentMethod: z.enum(['cash', 'bank_transfer']),
   paymentDetails: z.object({
-    cardToken: z.string().optional(),
-    paynowPhone: z.string().optional(),
     bankReference: z.string().optional(),
   }).optional(),
 });
@@ -240,38 +237,6 @@ export async function POST(request: NextRequest) {
 
     try {
       switch (validatedData.paymentMethod) {
-        case 'card':
-          if (!validatedData.paymentDetails?.cardToken) {
-            throw new Error('Card token is required for card payments');
-          }
-          // Process card payment (implement with your payment provider)
-          paymentResult = {
-            success: true,
-            transactionId: `card_${Date.now()}`,
-            message: 'Card payment processed successfully',
-          };
-          paymentStatus = 'completed';
-          break;
-
-        case 'paynow':
-          if (!validatedData.paymentDetails?.paynowPhone) {
-            throw new Error('Paynow phone number is required');
-          }
-          
-          paymentResult = await paymentService.initiatePaynowPayment({
-            amount: totalAmount,
-            phone: validatedData.paymentDetails.paynowPhone,
-            reference: bookingReference,
-            description: `Activity booking: ${activity.name}`,
-          });
-          
-          if (paymentResult.success) {
-            paymentStatus = 'pending';
-          } else {
-            throw new Error(paymentResult.message || 'Paynow payment failed');
-          }
-          break;
-
         case 'bank_transfer':
           paymentResult = {
             success: true,

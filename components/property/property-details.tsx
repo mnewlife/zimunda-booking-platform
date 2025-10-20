@@ -52,10 +52,6 @@ interface PropertyDetailsProps {
     rules: string[];
     cancellationPolicy: string;
     createdAt: Date;
-    reviews?: {
-      id: string;
-      rating: number;
-    }[];
   };
 }
 
@@ -79,11 +75,6 @@ const featureIcons: Record<string, any> = {
 export function PropertyDetails({ property }: PropertyDetailsProps) {
   const PropertyIcon = propertyTypeIcons[property.type.toLowerCase() as keyof typeof propertyTypeIcons] || Home;
   
-  // Calculate average rating
-  const averageRating = property.reviews && property.reviews.length > 0
-    ? property.reviews.reduce((sum, review) => sum + review.rating, 0) / property.reviews.length
-    : 0;
-
   const formatPropertyType = (type: string) => {
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
   };
@@ -102,13 +93,6 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
           <Badge variant="secondary">
             {formatPropertyType(property.type)}
           </Badge>
-          {/*{property.reviews && property.reviews.length > 0 && (
-            <div className="flex items-center space-x-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{averageRating.toFixed(1)}</span>
-              <span className="text-gray-500">({property.reviews.length} reviews)</span>
-            </div>
-          )}*/}
         </div>
         
         <h1 className="text-3xl font-bold text-gray-900 mb-2">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { headers } from 'next/headers';
 import { z } from 'zod';
 
@@ -41,13 +41,8 @@ const createOrderSchema = z.object({
     zipCode: z.string().min(1),
     country: z.string().min(1),
   }),
-  paymentMethod: z.enum(['card', 'paynow', 'bank_transfer']),
+  paymentMethod: z.enum(['cash', 'bank_transfer']),
   paymentDetails: z.object({
-    cardNumber: z.string().optional(),
-    expiryDate: z.string().optional(),
-    cvv: z.string().optional(),
-    cardName: z.string().optional(),
-    paynowNumber: z.string().optional(),
     bankDetails: z.object({
       accountName: z.string().optional(),
       accountNumber: z.string().optional(),

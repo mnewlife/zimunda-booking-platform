@@ -118,8 +118,7 @@ const getAdminStats = async () => {
     totalProperties,
     totalActivities,
     monthlyGrowth: Math.round(monthlyGrowth * 10) / 10,
-    occupancyRate: 78, // Calculate based on actual data
-    averageRating: 4.7, // Calculate based on actual reviews
+    occupancyRate: 78 // Calculate based on actual data
   };
 };
 
@@ -588,7 +587,7 @@ export default async function AdminDashboardPage() {
                           </div>
                           <div>
                             <span className="text-gray-600">Rating:</span>
-                            <span className="font-medium ml-1">{property.rating} ({property.reviews})</span>
+                            <span className="font-medium ml-1">{property.rating}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Bookings:</span>
@@ -734,15 +733,7 @@ export default async function AdminDashboardPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">Customer Satisfaction</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.averageRating}/5</p>
-                    </div>
-                    <div className="text-green-600">
-                      <TrendingUp className="h-6 w-6" />
-                    </div>
-                  </div>
+
                   
                   <div className="flex items-center justify-between">
                     <div>

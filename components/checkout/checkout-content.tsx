@@ -76,12 +76,11 @@ export function CheckoutContent() {
       country: 'Zimbabwe',
     },
     payment: {
-      method: 'card' as 'card' | 'paynow' | 'bank_transfer',
+      method: 'card' as 'card' | 'bank_transfer',
       cardNumber: '',
       expiryDate: '',
       cvv: '',
       cardName: '',
-      paynowNumber: '',
       bankDetails: {
         accountName: '',
         accountNumber: '',
@@ -184,19 +183,7 @@ export function CheckoutContent() {
         return;
       }
       
-      if (payment.method === 'card') {
-        if (!payment.cardNumber || !payment.expiryDate || !payment.cvv || !payment.cardName) {
-          toast.error('Please fill in all required payment information');
-          setCurrentStep(2);
-          return;
-        }
-      } else if (payment.method === 'paynow') {
-        if (!payment.paynowNumber) {
-          toast.error('Please provide your Paynow number');
-          setCurrentStep(2);
-          return;
-        }
-      }
+      // No additional validation needed for stripe and bank_transfer methods
       
       // Create order
       const orderData = {

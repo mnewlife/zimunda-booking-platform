@@ -914,7 +914,7 @@ async function main() {
         children: 2,
         totalPrice: 450, // 3 nights * $150
         status: 'CONFIRMED',
-        paymentMethod: 'PAYNOW',
+        paymentMethod: 'CASH',
         paymentStatus: 'COMPLETED',
         notes: 'Celebrating wedding anniversary'
       },
