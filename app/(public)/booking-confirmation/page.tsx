@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -50,7 +50,7 @@ interface BookingDetails {
   createdAt: string
 }
 
-export default function BookingConfirmationPage() {
+function BookingConfirmationContent() {
   const searchParams = useSearchParams()
   const bookingId = searchParams.get('booking')
   const [booking, setBooking] = useState<BookingDetails | null>(null)
@@ -364,5 +364,20 @@ export default function BookingConfirmationPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function BookingConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4 animate-spin" />
+          <p className="text-gray-600">Loading your booking details...</p>
+        </div>
+      </div>
+    }>
+      <BookingConfirmationContent />
+    </Suspense>
   )
 }
