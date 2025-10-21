@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       totalPrice: Number(booking.totalPrice),
       adults: booking.adults,
       children: booking.children,
+      source: "local",
     }));
 
     return NextResponse.json(transformedBookings);

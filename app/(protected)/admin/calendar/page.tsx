@@ -38,6 +38,7 @@ interface BookingData {
   property?: {
     name: string;
   } | null;
+  source?: string;
 }
 
 export default async function CalendarPage() {
@@ -50,8 +51,8 @@ export default async function CalendarPage() {
     redirect('/login');
   }
 
-  // Fetch bookings from database
-  const bookings = await prisma.booking.findMany({
+  // Fetch local bookings from database
+  const localBookings = await prisma.booking.findMany({
     include: {
       guest: true,
       property: true,
@@ -61,8 +62,8 @@ export default async function CalendarPage() {
     },
   });
 
-  // Transform bookings to the format expected by the component
-  const transformedBookings: BookingData[] = bookings.map((booking) => ({
+  // Transform local bookings to the format expected by the component
+  const transformedLocalBookings: BookingData[] = localBookings.map((booking) => ({
     id: booking.id,
     checkIn: booking.checkIn.toISOString(),
     checkOut: booking.checkOut.toISOString(),
@@ -79,7 +80,31 @@ export default async function CalendarPage() {
           name: booking.property.name,
         }
       : null,
+    source: "local",
   }));
+
+  // Fetch Airbnb bookings
+  let airbnbBookings: BookingData[] = [];
+  try {
+    const airbnbResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/admin/airbnb-calendar`, {
+      headers: {
+        'Cookie': await headers().then(h => h.get('cookie') || ''),
+      },
+    });
+    
+    if (airbnbResponse.ok) {
+      airbnbBookings = await airbnbResponse.json();
+    } else {
+      console.error('Failed to fetch Airbnb bookings:', airbnbResponse.status);
+    }
+  } catch (error) {
+    console.error('Error fetching Airbnb bookings:', error);
+  }
+
+  // Combine local and Airbnb bookings
+  const allBookings = [...transformedLocalBookings, ...airbnbBookings].sort(
+    (a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()
+  );
 
   return (
     <SidebarInset>
@@ -113,7 +138,7 @@ export default async function CalendarPage() {
           </div>
         </div>
         
-        <CalendarScheduler initialBookings={transformedBookings} />
+        <CalendarScheduler initialBookings={allBookings} />
       </div>
     </SidebarInset>
   );

@@ -34,13 +34,13 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Mountain className="h-8 w-8 text-green-600" />
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-xl font-bold text-foreground">
               Zimunda Estate
             </span>
           </Link>
@@ -51,7 +51,7 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-green-600 transition-colors"
               >
                 {item.name}
               </Link>
@@ -64,7 +64,7 @@ export function Header() {
             <CartIcon />
             
             {isPending ? (
-              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse" />
+              <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
             ) : session?.user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -138,7 +138,7 @@ export function Header() {
                 <div className="flex flex-col space-y-4 mt-8">
                   <Link href="/" className="flex items-center space-x-2 mb-8">
                     <Mountain className="h-6 w-6 text-green-600" />
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className="text-lg font-bold text-foreground">
                       Zimunda Estate
                     </span>
                   </Link>
@@ -147,7 +147,7 @@ export function Header() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className="text-lg font-medium text-gray-700 hover:text-green-600 transition-colors"
+                      className="text-lg font-medium text-muted-foreground hover:text-green-600 transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
                       {item.name}
@@ -159,14 +159,14 @@ export function Header() {
                       <div className="space-y-2">
                         <Link
                           href="/dashboard"
-                          className="block text-lg font-medium text-gray-700 hover:text-green-600 transition-colors"
+                          className="block text-lg font-medium text-muted-foreground hover:text-green-600 transition-colors"
                           onClick={() => setIsOpen(false)}
                         >
                           Dashboard
                         </Link>
                         <Link
                           href="/bookings"
-                          className="block text-lg font-medium text-gray-700 hover:text-green-600 transition-colors"
+                          className="block text-lg font-medium text-muted-foreground hover:text-green-600 transition-colors"
                           onClick={() => setIsOpen(false)}
                         >
                           My Bookings

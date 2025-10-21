@@ -28,6 +28,7 @@ interface BookingData {
   property?: {
     name: string;
   } | null;
+  source?: string;
 }
 
 interface SchedulerData {
@@ -65,10 +66,31 @@ export function CalendarScheduler({ initialBookings }: CalendarSchedulerProps) {
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/bookings");
-      if (!response.ok) throw new Error("Failed to fetch bookings");
-      const data = await response.json();
-      setBookings(data);
+      // Fetch local bookings
+      const localResponse = await fetch("/api/admin/bookings");
+      if (!localResponse.ok) throw new Error("Failed to fetch local bookings");
+      const localData = await localResponse.json();
+      
+      // Fetch Airbnb bookings
+      let airbnbData: BookingData[] = [];
+      try {
+        const airbnbResponse = await fetch("/api/admin/airbnb-calendar");
+        if (airbnbResponse.ok) {
+          airbnbData = await airbnbResponse.json();
+        } else {
+          console.warn("Failed to fetch Airbnb bookings:", airbnbResponse.status);
+        }
+      } catch (airbnbError) {
+        console.warn("Error fetching Airbnb bookings:", airbnbError);
+      }
+      
+      // Combine and sort all bookings
+      const allBookings = [...localData, ...airbnbData].sort(
+        (a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime()
+      );
+      
+      setBookings(allBookings);
+      toast.success(`Loaded ${localData.length} local and ${airbnbData.length} Airbnb bookings`);
     } catch (error) {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to load bookings");
@@ -85,9 +107,12 @@ export function CalendarScheduler({ initialBookings }: CalendarSchedulerProps) {
   const transformBookingsToSchedulerData = useCallback((): SchedulerData[] => {
     const propertyGroups = new Map<string, BookingData[]>();
     
-    // Group bookings by property
+    // Group bookings by property and source
     bookings.forEach((booking) => {
-      const propertyKey = booking.property?.name || "Activity Only";
+      const isAirbnb = booking.source === "airbnb";
+      const propertyName = booking.property?.name || "Activity Only";
+      const propertyKey = isAirbnb ? `${propertyName} (Airbnb)` : propertyName;
+      
       if (!propertyGroups.has(propertyKey)) {
         propertyGroups.set(propertyKey, []);
       }
@@ -102,16 +127,19 @@ export function CalendarScheduler({ initialBookings }: CalendarSchedulerProps) {
         title: propertyName,
         subtitle: `${propertyBookings.length} booking${propertyBookings.length !== 1 ? "s" : ""}`,
       },
-      data: propertyBookings.map((booking) => ({
-        id: booking.id,
-        startDate: new Date(booking.checkIn),
-        endDate: new Date(booking.checkOut),
-        occupancy: dayjs(booking.checkOut).diff(dayjs(booking.checkIn), "hour"),
-        title: `${booking.guest.name} (${booking.adults + booking.children} guests)`,
-        subtitle: `$${booking.totalPrice}`,
-        description: `Status: ${booking.status} | Email: ${booking.guest.email}`,
-        bgColor: getStatusColor(booking.status),
-      })),
+      data: propertyBookings.map((booking) => {
+        const isAirbnb = booking.source === "airbnb";
+        return {
+          id: booking.id,
+          startDate: new Date(booking.checkIn),
+          endDate: new Date(booking.checkOut),
+          occupancy: dayjs(booking.checkOut).diff(dayjs(booking.checkIn), "hour"),
+          title: `${booking.guest.name} (${booking.adults + booking.children} guests)${isAirbnb ? ' - Airbnb' : ''}`,
+          subtitle: isAirbnb ? 'Airbnb Booking' : `$${booking.totalPrice}`,
+          description: `Status: ${booking.status} | Email: ${booking.guest.email} | Source: ${isAirbnb ? 'Airbnb' : 'Local'}`,
+          bgColor: isAirbnb ? getAirbnbColor() : getStatusColor(booking.status),
+        };
+      }),
     }));
   }, [bookings]);
 
@@ -252,4 +280,9 @@ function getStatusColor(status: string): string {
     default:
       return "rgb(156, 163, 175)"; // gray
   }
+}
+
+// Helper function to get Airbnb color
+function getAirbnbColor(): string {
+  return "rgb(255, 90, 95)"; // Airbnb brand color (coral/pink)
 }
