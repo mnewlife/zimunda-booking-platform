@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, RefreshCwIcon } from "lucide-react";
 import { toast } from "sonner";
+import { BookingDetailsDialog } from "./booking-details-dialog";
 
 dayjs.extend(isBetween);
 
@@ -29,6 +30,12 @@ interface BookingData {
     name: string;
   } | null;
   source?: string;
+  metadata?: {
+    reservationUrl?: string;
+    phoneNumber?: string;
+    originalSummary?: string;
+    description?: string;
+  };
 }
 
 interface SchedulerData {
@@ -62,6 +69,8 @@ export function CalendarScheduler({ initialBookings }: CalendarSchedulerProps) {
     startDate: dayjs().startOf("month").toDate(),
     endDate: dayjs().endOf("month").toDate(),
   });
+  const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
@@ -157,7 +166,15 @@ export function CalendarScheduler({ initialBookings }: CalendarSchedulerProps) {
 
   const handleTileClick = (clickedResource: any) => {
     console.log("Booking clicked:", clickedResource);
-    toast.info(`Booking: ${clickedResource.title}`);
+    
+    // Find the original booking data using the ID
+    const booking = bookings.find(b => b.id === clickedResource.id);
+    if (booking) {
+      setSelectedBooking(booking);
+      setDialogOpen(true);
+    } else {
+      toast.error("Booking details not found");
+    }
   };
 
   const handleItemClick = (item: any) => {
@@ -262,6 +279,13 @@ export function CalendarScheduler({ initialBookings }: CalendarSchedulerProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Booking Details Dialog */}
+      <BookingDetailsDialog
+        booking={selectedBooking}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }

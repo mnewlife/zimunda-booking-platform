@@ -165,7 +165,15 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
       basePrice: property.basePrice.toNumber(),
       status: property.status,
       location: property.location,
-      policies: property.policies,
+      policies: {
+        // Provide default values for missing checkIn/checkOut fields
+        checkIn: property.policies?.checkIn || '15:00',
+        checkOut: property.policies?.checkOut || '11:00',
+        cancellation: property.policies?.cancellation || 'Free cancellation up to 24 hours before check-in',
+        smoking: property.policies?.smoking || false,
+        pets: property.policies?.pets || false,
+        parties: property.policies?.parties || false,
+      },
       rules: property.rules || [],
       amenityIds: property.amenities?.map((a: any) => a.amenityId) || [],
       images: property.images?.map((img: any) => ({
@@ -546,7 +554,13 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>Check-in Time</FormLabel>
                         <FormControl>
-                          <Input className="bg-white" placeholder="15:00" {...field} />
+                          <Input 
+                            type="time" 
+                            step="1" 
+                            className="bg-white appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" 
+                            placeholder="15:00" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -559,7 +573,13 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                       <FormItem>
                         <FormLabel>Check-out Time</FormLabel>
                         <FormControl>
-                          <Input className="bg-white" placeholder="11:00" {...field} />
+                          <Input 
+                            type="time" 
+                            step="1" 
+                            className="bg-white appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" 
+                            placeholder="11:00" 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

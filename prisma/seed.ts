@@ -297,35 +297,35 @@ async function main() {
     data: [
       // Mountain View Cottage images
       {
-        url: '/images/properties/mountain-view-cottage/exterior-1.jpg',
+        url: 'https://example.com/images/properties/mountain-view-cottage/exterior-1.jpg',
         alt: 'Mountain View Cottage exterior with mountain backdrop',
         caption: 'Stunning mountain views from the cottage',
         order: 1,
         propertyId: mountainViewCottage.id
       },
       {
-        url: '/images/properties/mountain-view-cottage/living-room.jpg',
+        url: 'https://example.com/images/properties/mountain-view-cottage/living-room.jpg',
         alt: 'Spacious living room with fireplace',
         caption: 'Cozy living area with mountain views',
         order: 2,
         propertyId: mountainViewCottage.id
       },
       {
-        url: '/images/properties/mountain-view-cottage/kitchen.jpg',
+        url: 'https://example.com/images/properties/mountain-view-cottage/kitchen.jpg',
         alt: 'Fully equipped modern kitchen',
         caption: 'Everything you need for home cooking',
         order: 3,
         propertyId: mountainViewCottage.id
       },
       {
-        url: '/images/properties/mountain-view-cottage/bedroom-master.jpg',
+        url: 'https://example.com/images/properties/mountain-view-cottage/bedroom-master.jpg',
         alt: 'Master bedroom with mountain views',
         caption: 'Wake up to breathtaking mountain scenery',
         order: 4,
         propertyId: mountainViewCottage.id
       },
       {
-        url: '/images/properties/mountain-view-cottage/deck.jpg',
+        url: 'https://example.com/images/properties/mountain-view-cottage/deck.jpg',
         alt: 'Large outdoor deck with braai area',
         caption: 'Perfect for outdoor dining and relaxation',
         order: 5,
@@ -333,28 +333,28 @@ async function main() {
       },
       // Forest Haven Cabin images
       {
-        url: '/images/properties/forest-haven-cabin/exterior-1.jpg',
+        url: 'https://example.com/images/properties/forest-haven-cabin/exterior-1.jpg',
         alt: 'Forest Haven Cabin surrounded by indigenous trees',
         caption: 'Your private forest retreat',
         order: 1,
         propertyId: forestHavenCabin.id
       },
       {
-        url: '/images/properties/forest-haven-cabin/bedroom.jpg',
+        url: 'https://example.com/images/properties/forest-haven-cabin/bedroom.jpg',
         alt: 'Romantic bedroom with forest views',
         caption: 'Fall asleep to the sounds of nature',
         order: 2,
         propertyId: forestHavenCabin.id
       },
       {
-        url: '/images/properties/forest-haven-cabin/deck.jpg',
+        url: 'https://example.com/images/properties/forest-haven-cabin/deck.jpg',
         alt: 'Private deck overlooking the forest',
         caption: 'Your own piece of paradise',
         order: 3,
         propertyId: forestHavenCabin.id
       },
       {
-        url: '/images/properties/forest-haven-cabin/bathroom.jpg',
+        url: 'https://example.com/images/properties/forest-haven-cabin/bathroom.jpg',
         alt: 'Outdoor shower with forest privacy',
         caption: 'Unique outdoor bathing experience',
         order: 4,
@@ -362,35 +362,35 @@ async function main() {
       },
       // Sunset Ridge Cottage images
       {
-        url: '/images/properties/sunset-ridge-cottage/exterior-sunset.jpg',
+        url: 'https://example.com/images/properties/sunset-ridge-cottage/exterior-sunset.jpg',
         alt: 'Sunset Ridge Cottage during golden hour',
         caption: 'Experience magical sunsets every evening',
         order: 1,
         propertyId: sunsetRidgeCottage.id
       },
       {
-        url: '/images/properties/sunset-ridge-cottage/living-area.jpg',
+        url: 'https://example.com/images/properties/sunset-ridge-cottage/living-area.jpg',
         alt: 'Large family living area',
         caption: 'Plenty of space for the whole family',
         order: 2,
         propertyId: sunsetRidgeCottage.id
       },
       {
-        url: '/images/properties/sunset-ridge-cottage/kids-room.jpg',
+        url: 'https://example.com/images/properties/sunset-ridge-cottage/kids-room.jpg',
         alt: 'Colorful children\'s bedroom',
         caption: 'Kids will love their special space',
         order: 3,
         propertyId: sunsetRidgeCottage.id
       },
       {
-        url: '/images/properties/sunset-ridge-cottage/play-area.jpg',
+        url: 'https://example.com/images/properties/sunset-ridge-cottage/play-area.jpg',
         alt: 'Outdoor children\'s play area',
         caption: 'Safe outdoor fun for children',
         order: 4,
         propertyId: sunsetRidgeCottage.id
       },
       {
-        url: '/images/properties/sunset-ridge-cottage/sunset-view.jpg',
+        url: 'https://example.com/images/properties/sunset-ridge-cottage/sunset-view.jpg',
         alt: 'Spectacular sunset view from the cottage',
         caption: 'Unforgettable sunset experiences',
         order: 5,

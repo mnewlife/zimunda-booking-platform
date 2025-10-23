@@ -752,7 +752,7 @@ export default async function AdminDashboardPage() {
                           </div>
                         </div>
                         <div className="text-lg font-bold text-green-600 mb-3">
-                          Revenue: ${(property.revenue || property.bookings?.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0) || 0).toLocaleString()}
+                          Revenue: ${(property.revenue || 0).toLocaleString()}
                         </div>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm" className="flex-1">

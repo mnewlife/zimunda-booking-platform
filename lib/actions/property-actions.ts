@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { PropertyType, PropertyStatus } from '@prisma/client';
@@ -14,6 +15,7 @@ const propertySchema = z.object({
   maxOccupancy: z.number().min(1, 'Must accommodate at least 1 person').max(20, 'Maximum 20 people'),
   basePrice: z.number().min(1, 'Base price must be greater than 0'),
   status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE']),
+  airbnbCalendarUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   location: z.object({
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
@@ -69,7 +71,9 @@ async function ensureUniqueSlug(baseSlug: string, excludeId?: string): Promise<s
 }
 
 export async function createProperty(data: PropertyInput) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user || (session.user as any).role !== 'ADMIN') {
     throw new Error('Unauthorized');
@@ -95,6 +99,7 @@ export async function createProperty(data: PropertyInput) {
           maxOccupancy: validatedData.maxOccupancy,
           basePrice: validatedData.basePrice,
           status: validatedData.status as PropertyStatus,
+          airbnbCalendarUrl: validatedData.airbnbCalendarUrl || null,
           location: validatedData.location,
           policies: validatedData.policies,
           rules: validatedData.rules,
@@ -154,7 +159,9 @@ export async function createProperty(data: PropertyInput) {
 }
 
 export async function updateProperty(propertyId: string, data: PropertyInput) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user || (session.user as any).role !== 'ADMIN') {
     throw new Error('Unauthorized');
@@ -194,6 +201,7 @@ export async function updateProperty(propertyId: string, data: PropertyInput) {
           maxOccupancy: validatedData.maxOccupancy,
           basePrice: validatedData.basePrice,
           status: validatedData.status as PropertyStatus,
+          airbnbCalendarUrl: validatedData.airbnbCalendarUrl || null,
           location: validatedData.location,
           policies: validatedData.policies,
           rules: validatedData.rules,
@@ -262,7 +270,9 @@ export async function updateProperty(propertyId: string, data: PropertyInput) {
 }
 
 export async function deleteProperty(propertyId: string) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user || (session.user as any).role !== 'ADMIN') {
     throw new Error('Unauthorized');
@@ -316,7 +326,9 @@ export async function deleteProperty(propertyId: string) {
 }
 
 export async function togglePropertyStatus(propertyId: string, status: PropertyStatus) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user || (session.user as any).role !== 'ADMIN') {
     throw new Error('Unauthorized');
@@ -341,7 +353,9 @@ export async function togglePropertyStatus(propertyId: string, status: PropertyS
 }
 
 export async function duplicateProperty(propertyId: string) {
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user || (session.user as any).role !== 'ADMIN') {
     throw new Error('Unauthorized');

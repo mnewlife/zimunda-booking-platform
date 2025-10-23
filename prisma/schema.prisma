@@ -82,25 +82,26 @@ model Verification {
 // ============================================================================
 
 model Property {
-  id            String            @id @default(cuid())
-  name          String
-  type          PropertyType
-  slug          String            @unique
-  description   String
-  maxOccupancy  Int
-  basePrice     Decimal
-  images        Image[]
-  amenities     PropertyAmenity[]
-  rules         String[]
-  policies      Json
-  location      Json
-  status        PropertyStatus    @default(ACTIVE)
-  bookings      Booking[]
-  addOns        AddOn[]
-  blockedDates  BlockedDate[]
-  customPricing CustomPricing[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id                String            @id @default(cuid())
+  name              String
+  type              PropertyType
+  slug              String            @unique
+  description       String
+  maxOccupancy      Int
+  basePrice         Decimal
+  airbnbCalendarUrl String?           // Optional Airbnb calendar iCal URL
+  images            Image[]
+  amenities         PropertyAmenity[]
+  rules             String[]
+  policies          Json
+  location          Json
+  status            PropertyStatus    @default(ACTIVE)
+  bookings          Booking[]
+  addOns            AddOn[]
+  blockedDates      BlockedDate[]
+  customPricing     CustomPricing[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }
 
 model Image {

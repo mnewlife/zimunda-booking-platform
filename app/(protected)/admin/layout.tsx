@@ -27,14 +27,7 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
     return (
         <SidebarProvider>
             <AdminSidebar user={user} />
-            {/*<SidebarInset>
-                <main className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-                    {children}
-                </main>
-            </SidebarInset>*/}
-            <main className="flex-1 space-y-4 px-4 py-2">
-                { children }
-            </main>
+            {children}
         </SidebarProvider>
     );
 }

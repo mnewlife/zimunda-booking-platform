@@ -42,6 +42,7 @@ const propertyFormSchema = z.object({
   maxOccupancy: z.number().min(1, 'Max occupancy must be at least 1'),
   basePrice: z.number().min(1, 'Base price must be at least $1'),
   status: z.nativeEnum(PropertyStatus),
+  airbnbCalendarUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   location: z.object({
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
@@ -67,7 +68,7 @@ const propertyFormSchema = z.object({
     url: z.string().url('Must be a valid URL'),
     alt: z.string().optional(),
     caption: z.string().optional(),
-  })),
+  })).optional(),
 });
 
 type PropertyFormValues = z.infer<typeof propertyFormSchema>;
@@ -83,6 +84,7 @@ const defaultValues: Partial<PropertyFormValues> = {
   maxOccupancy: 2,
   basePrice: 100,
   status: 'ACTIVE',
+  airbnbCalendarUrl: '',
   location: {
     address: '',
     city: '',
@@ -100,7 +102,6 @@ const defaultValues: Partial<PropertyFormValues> = {
   amenityIds: [],
   addOns: [],
   activityIds: [],
-  images: [],
 };
 
 const availableAmenities = [
@@ -167,8 +168,17 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
       maxOccupancy: property.maxOccupancy,
       basePrice: Number(property.basePrice.toString()),
       status: property.status,
+      airbnbCalendarUrl: property.airbnbCalendarUrl || '',
       location: property.location,
-      policies: property.policies,
+      policies: {
+        // Provide default values for missing checkIn/checkOut fields
+        checkIn: property.policies?.checkIn || '15:00',
+        checkOut: property.policies?.checkOut || '11:00',
+        cancellation: property.policies?.cancellation || 'Free cancellation up to 24 hours before check-in',
+        smoking: property.policies?.smoking || false,
+        pets: property.policies?.pets || false,
+        parties: property.policies?.parties || false,
+      },
       rules: property.rules || [],
       amenityIds: property.amenities?.map((a: any) => a.amenityId) || [],
       addOns: property.addOns?.map((addon: any) => ({
@@ -177,11 +187,13 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
         price: addon.price,
       })) || [],
       activityIds: property.activities?.map((a: any) => a.activityId) || [],
-      images: property.images?.map((img: any) => ({
-        url: img.url,
-        alt: img.alt || '',
-        caption: img.caption || '',
-      })) || [],
+      images: Array.isArray(property.images) ? property.images
+        .filter((img: any) => img && img.url && typeof img.url === 'string' && img.url.trim() !== '')
+        .map((img: any) => ({
+          url: img.url,
+          alt: img.alt || '',
+          caption: img.caption || '',
+        })) : undefined,
     } : defaultValues,
   });
 
@@ -205,6 +217,10 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
         setLoadingAmenities(false);
       }
     };
+
+    console.log("Form Errors: ", form.formState.errors)
+    console.log("Form Values: ", form.getValues())
+    console.log("Form State: ", form.formState)
 
     const fetchActivities = async () => {
       try {
@@ -290,14 +306,14 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
 
   const addImage = () => {
     if (newImage.url.trim()) {
-      const currentImages = form.getValues('images');
+      const currentImages = form.getValues('images') || [];
       form.setValue('images', [...currentImages, newImage]);
       setNewImage({ url: '', alt: '', caption: '' });
     }
   };
 
   const removeImage = (index: number) => {
-    const currentImages = form.getValues('images');
+    const currentImages = form.getValues('images') || [];
     form.setValue('images', currentImages.filter((_, i) => i !== index));
   };
 
@@ -353,6 +369,20 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
           </Link>
         </Button>
       </div>
+
+      {/* Debug: Show form errors */}
+      {Object.keys(form.formState.errors).length > 0 && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-red-800 font-medium mb-2">Form Validation Errors:</h3>
+          <ul className="text-red-700 text-sm space-y-1">
+            {Object.entries(form.formState.errors).map(([field, error]) => (
+              <li key={field}>
+                <strong>{field}:</strong> {error?.message || 'Invalid value'}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-6">
@@ -488,6 +518,29 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                       )}
                     />
                   </div>
+
+                  {/* Airbnb Calendar URL Field */}
+                  <FormField
+                    control={form.control}
+                    name="airbnbCalendarUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Airbnb Calendar URL (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="bg-white"
+                            type="url"
+                            placeholder="https://www.airbnb.com/calendar/ical/..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the Airbnb iCal calendar URL to sync external bookings. This helps prevent double bookings by importing Airbnb reservations into your calendar.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
               </div>
 
               <Separator />
@@ -534,7 +587,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                         <FormItem>
                       <FormLabel>Country</FormLabel>
                       <FormControl>
-                        <Input className="bg-white" placeholder="United States" {...field} />
+                        <Input className="bg-white" placeholder="Zimbabwe" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -814,7 +867,13 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                           <FormItem>
                       <FormLabel>Check-in Time</FormLabel>
                       <FormControl>
-                        <Input className="bg-white" placeholder="15:00" {...field} />
+                        <Input 
+                          type="time" 
+                          step="1" 
+                          className="bg-white appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" 
+                          placeholder="15:00" 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -827,7 +886,13 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                           <FormItem>
                       <FormLabel>Check-out Time</FormLabel>
                       <FormControl>
-                        <Input className="bg-white" placeholder="11:00" {...field} />
+                        <Input 
+                          type="time" 
+                          step="1" 
+                          className="bg-white appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none" 
+                          placeholder="11:00" 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1000,7 +1065,7 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                   <div className="space-y-4">
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {form.watch('images').map((image, index) => (
+                      {(form.watch('images') || []).map((image, index) => (
                         <div key={index} className="relative border rounded-lg overflow-hidden">
                           <img
                             src={image.url}

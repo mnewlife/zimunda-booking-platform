@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import * as ical from "node-ical";
-
-// Airbnb calendar URLs
-const AIRBNB_CALENDAR_URLS = [
-  "https://www.airbnb.com/calendar/ical/32857814.ics?s=230f8192e33a01a2f483c2ca647bdb45&locale=en",
-  "https://www.airbnb.com/calendar/ical/947788635220468104.ics?s=829c87bb0f27d1c35d57fd2ef99a0d15&locale=en"
-];
 
 interface AirbnbBooking {
   id: string;
@@ -40,12 +35,30 @@ export async function GET(request: NextRequest) {
 
     const allBookings: AirbnbBooking[] = [];
 
+    // Fetch properties with Airbnb calendar URLs from database
+    const propertiesWithAirbnb = await prisma.property.findMany({
+      where: {
+        airbnbCalendarUrl: {
+          not: null,
+          not: ""
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        airbnbCalendarUrl: true
+      }
+    });
+
+    console.log(`Found ${propertiesWithAirbnb.length} properties with Airbnb calendar URLs`);
+
     // Fetch and parse each Airbnb calendar
-    for (let i = 0; i < AIRBNB_CALENDAR_URLS.length; i++) {
-      const url = AIRBNB_CALENDAR_URLS[i];
+    for (let i = 0; i < propertiesWithAirbnb.length; i++) {
+      const property = propertiesWithAirbnb[i];
+      const url = property.airbnbCalendarUrl!;
       
       try {
-        console.log(`Fetching Airbnb calendar ${i + 1}:`, url);
+        console.log(`Fetching Airbnb calendar for property "${property.name}":`, url);
         
         // Fetch the iCal data
         const response = await fetch(url, {
@@ -55,54 +68,78 @@ export async function GET(request: NextRequest) {
         });
         
         if (!response.ok) {
-          console.error(`Failed to fetch calendar ${i + 1}:`, response.status, response.statusText);
+          console.error(`Failed to fetch calendar for property "${property.name}":`, response.status, response.statusText);
           continue;
         }
         
         const icalData = await response.text();
-        console.log(`Received iCal data for calendar ${i + 1}, length:`, icalData.length);
+        console.log(`Received iCal data for property "${property.name}", length:`, icalData.length);
         
         // Parse the iCal data
         const events = ical.parseICS(icalData);
         
-        // Extract property ID from URL for naming
-        const propertyIdMatch = url.match(/\/(\d+)\.ics/);
-        const propertyId = propertyIdMatch ? propertyIdMatch[1] : `property-${i + 1}`;
-        
         // Convert events to booking format
         Object.values(events).forEach((event: any) => {
           if (event.type === 'VEVENT' && event.start && event.end) {
-            // Skip if it's not a booking (some calendars have availability blocks)
-            if (event.summary && event.summary.toLowerCase().includes('available')) {
-              return;
-            }
+            // Extract information from the event
+            const summary = event.summary || "Airbnb Event";
+            const description = event.description || "";
+            
+            // Extract phone number from description if available
+            const phoneMatch = description.match(/Phone Number \(Last 4 Digits\): (\d+)/);
+            const phoneNumber = phoneMatch ? phoneMatch[1] : null;
+            
+            // Extract reservation URL from description if available
+            const urlMatch = description.match(/Reservation URL: (https?:\/\/[^\s\\]+)/);
+            const reservationUrl = urlMatch ? urlMatch[1] : null;
+            
+            // Use the actual event summary as the guest name
+            const guestName = summary;
+            
+            // Use a generic email for Airbnb events
+            const guestEmail = "airbnb@example.com";
+            
+            // All Airbnb events are considered confirmed bookings/blocks
+            const status = "CONFIRMED";
             
             const booking: AirbnbBooking = {
-              id: `airbnb-${propertyId}-${event.uid || Date.now()}`,
+              id: `airbnb-${property.id}-${event.uid || Date.now()}`,
               checkIn: event.start.toISOString(),
               checkOut: event.end.toISOString(),
-              status: "CONFIRMED", // Airbnb bookings are typically confirmed
+              status: status,
               totalPrice: 0, // Price not available in iCal
               adults: 1, // Default values since not available in iCal
               children: 0,
               guest: {
-                name: event.summary || "Airbnb Guest",
-                email: "airbnb-guest@example.com", // Placeholder email
+                name: guestName,
+                email: guestEmail,
               },
               property: {
-                name: `Airbnb Property ${propertyId}`,
+                name: property.name,
               },
               source: "airbnb"
             };
             
+            // Add additional metadata if available
+            if (reservationUrl || phoneNumber || description) {
+              (booking as any).metadata = {
+                reservationUrl,
+                phoneNumber,
+                originalSummary: summary,
+                description: description
+              };
+            }
+            
             allBookings.push(booking);
+            
+            console.log(`Added Airbnb event: ${summary} for property "${property.name}" from ${event.start.toISOString()} to ${event.end.toISOString()}`);
           }
         });
         
-        console.log(`Processed ${Object.keys(events).length} events from calendar ${i + 1}`);
+        console.log(`Processed ${Object.keys(events).length} events from property "${property.name}"`);
         
       } catch (error) {
-        console.error(`Error processing calendar ${i + 1}:`, error);
+        console.error(`Error processing calendar for property "${property.name}":`, error);
         // Continue with other calendars even if one fails
       }
     }
