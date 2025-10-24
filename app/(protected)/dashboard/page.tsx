@@ -166,6 +166,11 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
+  // Redirect admin users to admin dashboard
+  if (session.user.role === 'ADMIN') {
+    redirect('/admin');
+  }
+
   const userId = session.user.id;
   
   // Fetch real data from database
