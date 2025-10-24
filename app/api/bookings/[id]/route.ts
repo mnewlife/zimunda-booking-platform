@@ -85,6 +85,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const {
+      guestId,
       guestName,
       guestEmail,
       guestPhone,
@@ -133,8 +134,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Update guest information if provided
-    if (guestName || guestEmail || guestPhone) {
+    // Handle guest changes
+    let targetGuestId = existingBooking.guestId;
+    
+    if (guestId && guestId !== existingBooking.guestId) {
+      // Guest is being changed to a different user
+      targetGuestId = guestId;
+    } else if (guestName || guestEmail || guestPhone) {
+      // Update existing guest information
       await prisma.user.update({
         where: { id: existingBooking.guestId },
         data: {
@@ -164,6 +171,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const updatedBooking = await prisma.booking.update({
       where: { id: params.id },
       data: {
+        guestId: targetGuestId,
         ...(propertyId !== undefined && { propertyId: isEstateBooking ? null : propertyId }),
         ...(isEstateBooking !== undefined && { isEstateBooking }),
         ...(checkIn && { checkIn: new Date(checkIn) }),

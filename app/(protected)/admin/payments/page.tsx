@@ -126,6 +126,8 @@ export default async function PaymentsPage() {
         return 'outline';
       case 'CASH':
         return 'secondary';
+      case 'STRIPE':
+        return 'default';
       default:
         return 'secondary';
     }

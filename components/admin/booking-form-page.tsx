@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect, SearchableSelectOption } from '@/components/ui/searchable-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -50,7 +51,7 @@ const bookingFormSchema = z.object({
   children: z.number().min(0, 'Children count cannot be negative'),
   
   // Payment Information
-  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER']),
+  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'STRIPE']),
   paymentStatus: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED']),
   status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']),
   
@@ -185,7 +186,16 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
 
         if (usersRes.ok) {
           const usersData = await usersRes.json();
-          setUsers(Array.isArray(usersData) ? usersData : usersData.users || []);
+          const usersArray = Array.isArray(usersData) ? usersData : usersData.users || [];
+          setUsers(usersArray);
+          
+          // Auto-select guest if editing booking
+          if (booking && booking.guest) {
+            const existingGuest = usersArray.find((user: User) => user.id === booking.guest.id);
+            if (existingGuest) {
+              setSelectedGuest(existingGuest);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -194,7 +204,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
     };
 
     fetchData();
-  }, []);
+  }, [booking]);
 
   // Calculate total price
   useEffect(() => {
@@ -330,26 +340,31 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Select Existing Guest (Optional)</Label>
-                <Select onValueChange={(value) => {
-                  const user = users.find(u => u.id === value);
-                  if (user) {
-                    setSelectedGuest(user);
-                    form.setValue('guestName', user.name);
-                    form.setValue('guestEmail', user.email);
-                    form.setValue('guestPhone', user.phone || '');
-                  }
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Search existing guests..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name} ({user.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  options={users.map((user): SearchableSelectOption => ({
+                    value: user.id,
+                    label: `${user.name} (${user.email})`,
+                    searchTerms: [user.name, user.email, user.phone || ''].filter(Boolean)
+                  }))}
+                  value={selectedGuest?.id || ''}
+                  onValueChange={(value) => {
+                    const user = users.find(u => u.id === value);
+                    if (user) {
+                      setSelectedGuest(user);
+                      form.setValue('guestName', user.name);
+                      form.setValue('guestEmail', user.email);
+                      form.setValue('guestPhone', user.phone || '');
+                    } else {
+                      setSelectedGuest(null);
+                      form.setValue('guestName', '');
+                      form.setValue('guestEmail', '');
+                      form.setValue('guestPhone', '');
+                    }
+                  }}
+                  placeholder="Search existing guests..."
+                  searchPlaceholder="Search by name, email, or phone..."
+                  emptyMessage="No guests found."
+                />
               </div>
               
               <FormField
@@ -359,7 +374,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                   <FormItem>
                     <FormLabel>Guest Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter guest name" {...field} />
+                      <Input placeholder="Enter guest name" className="bg-white" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -373,7 +388,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter email address" {...field} />
+                      <Input type="email" placeholder="Enter email address" className="bg-white" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -387,7 +402,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                   <FormItem>
                     <FormLabel>Phone Number (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter phone number" {...field} />
+                      <Input placeholder="Enter phone number" className="bg-white" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -437,7 +452,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                       <FormLabel>Property</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white">
                             <SelectValue placeholder="Select a property" />
                           </SelectTrigger>
                         </FormControl>
@@ -548,6 +563,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                         <Input
                           type="number"
                           min="1"
+                          className="bg-white"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                         />
@@ -567,6 +583,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                         <Input
                           type="number"
                           min="0"
+                          className="bg-white"
                           {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                         />
@@ -675,13 +692,14 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                     <FormLabel>Payment Method</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="Select payment method" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="CASH">Cash</SelectItem>
                         <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
+                        <SelectItem value="STRIPE">Stripe</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -697,7 +715,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                     <FormLabel>Payment Status</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="Select payment status" />
                         </SelectTrigger>
                       </FormControl>
@@ -722,7 +740,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                     <FormLabel>Booking Status</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="Select booking status" />
                         </SelectTrigger>
                       </FormControl>
@@ -802,7 +820,7 @@ export function BookingFormPage({ booking }: BookingFormPageProps) {
                   <FormControl>
                     <Textarea
                       placeholder="Enter any special requests or notes..."
-                      className="min-h-[100px]"
+                      className="min-h-[100px] bg-white"
                       {...field}
                     />
                   </FormControl>

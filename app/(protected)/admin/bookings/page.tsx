@@ -99,6 +99,8 @@ const getPaymentMethodColor = (method: PaymentMethod) => {
       return 'bg-green-100 text-green-800';
     case 'BANK_TRANSFER':
       return 'bg-blue-100 text-blue-800';
+    case 'STRIPE':
+      return 'bg-purple-100 text-purple-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -437,9 +439,11 @@ export default async function BookingsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/bookings/${booking.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>

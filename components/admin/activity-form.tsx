@@ -191,7 +191,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                   <FormItem>
                     <FormLabel>Activity Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Coffee Farm Tour" {...field} />
+                      <Input placeholder="e.g., Coffee Farm Tour" className="bg-white" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -206,7 +206,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                     <FormLabel>Activity Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="Select activity type" />
                         </SelectTrigger>
                       </FormControl>
@@ -232,7 +232,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                     <FormControl>
                       <Textarea
                         placeholder="Describe the activity experience..."
-                        className="min-h-[100px]"
+                        className="min-h-[100px] bg-white"
                         {...field}
                       />
                     </FormControl>
@@ -259,6 +259,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                       <Input
                         type="number"
                         placeholder="60"
+                        className="bg-white"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
@@ -282,6 +283,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                         type="number"
                         step="0.01"
                         placeholder="25.00"
+                        className="bg-white"
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
@@ -301,6 +303,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                       <Input
                         type="number"
                         placeholder="10"
+                        className="bg-white"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
@@ -349,6 +352,7 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
               <Input
                 placeholder="Add a requirement (e.g., Comfortable walking shoes)"
                 value={newRequirement}
+                className="bg-white"
                 onChange={(e) => setNewRequirement(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
               />
@@ -406,12 +410,14 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                     <Input
                       type="time"
                       value={slot.start}
+                      className="bg-white"
                       onChange={(e) => updateTimeSlot(index, 'start', e.target.value)}
                     />
                     <span>to</span>
                     <Input
                       type="time"
                       value={slot.end}
+                      className="bg-white"
                       onChange={(e) => updateTimeSlot(index, 'end', e.target.value)}
                     />
                     {timeSlots.length > 1 && (
