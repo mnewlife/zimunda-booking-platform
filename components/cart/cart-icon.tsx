@@ -11,23 +11,19 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
-import { useSession } from '@/lib/auth-client';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+
+// Use the CartItem interface from the new client-side cart hook
+import type { CartItem } from '@/hooks/use-client-cart';
 
 interface CartIconProps {
   className?: string;
 }
 
 export function CartIcon({ className }: CartIconProps) {
-  const { data: session } = useSession();
-  const { cartItems, itemCount, isLoading } = useCart();
+  const { cartItems, itemCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
-
-  // Don't show cart icon if user is not authenticated
-  if (!session?.user) {
-    return null;
-  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -36,7 +32,7 @@ export function CartIcon({ className }: CartIconProps) {
     }).format(price);
   };
 
-  const getCurrentPrice = (item: any) => {
+  const getCurrentPrice = (item: CartItem) => {
     return item.variant ? item.variant.price : item.product.price;
   };
 
@@ -73,19 +69,7 @@ export function CartIcon({ className }: CartIconProps) {
             </span>
           </div>
 
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="flex gap-3 animate-pulse">
-                  <div className="w-12 h-12 bg-gray-200 rounded" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : cartItems.length === 0 ? (
+          {cartItems.length === 0 ? (
             <div className="text-center py-8">
               <ShoppingBag className="h-12 w-12 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600 mb-4">Your cart is empty</p>
@@ -101,7 +85,7 @@ export function CartIcon({ className }: CartIconProps) {
                   return (
                     <div key={item.id} className="flex gap-3">
                       <div className="relative w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                        {item.product.images.length > 0 ? (
+                        {item.product.images && item.product.images.length > 0 ? (
                           <Image
                             src={item.product.images[0]}
                             alt={item.product.name}

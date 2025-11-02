@@ -469,7 +469,6 @@ async function main() {
       price: 25,
       capacity: 15,
       maxParticipants: 15,
-      difficulty: 'Easy',
       location: 'Coffee Plantation',
       bookable: true,
       requirements: [
@@ -498,7 +497,6 @@ async function main() {
       price: 50,
       capacity: 20,
       maxParticipants: 20,
-      difficulty: 'Easy',
       location: 'Pool Area',
       bookable: true,
       requirements: [
@@ -527,7 +525,6 @@ async function main() {
       price: 35,
       capacity: 8,
       maxParticipants: 8,
-      difficulty: 'Moderate',
       location: 'Vumba Mountains',
       bookable: true,
       requirements: [
@@ -556,7 +553,6 @@ async function main() {
       price: 30,
       capacity: 6,
       maxParticipants: 6,
-      difficulty: 'Easy',
       location: 'Estate Grounds',
       bookable: true,
       requirements: [

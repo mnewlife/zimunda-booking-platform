@@ -31,7 +31,6 @@ interface ActivityCardProps {
     duration: number;
     maxParticipants: number;
     price: number;
-    difficulty: string;
     location: string;
     bookable: boolean;
     images: {
@@ -53,12 +52,6 @@ const activityTypeIcons: Record<string, any> = {
   adventure: TrendingUp,
 };
 
-const difficultyColors = {
-  EASY: 'bg-green-100 text-green-800 border-green-200',
-  MODERATE: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  HARD: 'bg-red-100 text-red-800 border-red-200',
-};
-
 export function ActivityCard({ activity }: ActivityCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageError, setImageError] = useState(false);
@@ -77,10 +70,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
 
   const formatActivityType = (type: string) => {
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-  };
-
-  const formatDifficulty = (difficulty: string) => {
-    return difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
   };
 
   const formatDuration = (duration: number) => {

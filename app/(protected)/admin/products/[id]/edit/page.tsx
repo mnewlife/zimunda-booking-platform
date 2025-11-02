@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import {
   Breadcrumb,
@@ -19,13 +19,17 @@ export const metadata: Metadata = {
 };
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
-  const session = await getServerSession(authOptions);
+  const { id } = await params;
+  
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user) {
     redirect('/login');
@@ -37,7 +41,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
   const product = await prisma.product.findUnique({
     where: {
-      id: params.id,
+      id: id,
     },
     include: {
       variants: true,
@@ -92,10 +96,13 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
           name: product.name,
           category: product.category,
           description: product.description,
-          price: product.price,
+          price: Number(product.price),
           inventory: product.inventory,
           images: product.images,
-          variants: product.variants,
+          variants: product.variants.map(variant => ({
+            ...variant,
+            price: Number(variant.price),
+          })),
         }}
         isEditing
       />

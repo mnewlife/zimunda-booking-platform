@@ -13,30 +13,12 @@ import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-interface CartItem {
-  id: string;
-  productId: string;
-  variantId?: string;
-  quantity: number;
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    images: string[];
-    category: string;
-    inventory: number;
-  };
-  variant?: {
-    id: string;
-    name: string;
-    price: number;
-    inventory: number;
-  };
-}
+// Use the CartItem interface from the new client-side cart hook
+import type { CartItem } from '@/hooks/use-client-cart';
 
 export function CartContent() {
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
-  const { cartItems, isLoading, updateQuantity: updateCartQuantity, removeItem: removeCartItem, clearCart } = useCart();
+  const { cartItems, updateQuantity: updateCartQuantity, removeItem: removeCartItem, clearCart } = useCart();
   const { toast } = useToast();
 
   const formatPrice = (price: number) => {
@@ -58,46 +40,63 @@ export function CartContent() {
     if (newQuantity < 1) return;
 
     setUpdatingItems(prev => new Set(prev).add(itemId));
-    await updateCartQuantity(itemId, newQuantity);
-    setUpdatingItems(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(itemId);
-      return newSet;
-    });
+    try {
+      await updateCartQuantity(itemId, newQuantity);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update quantity. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+    }
   };
 
   const removeItem = async (itemId: string) => {
     setUpdatingItems(prev => new Set(prev).add(itemId));
-    await removeCartItem(itemId);
-    setUpdatingItems(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(itemId);
-      return newSet;
-    });
+    try {
+      await removeCartItem(itemId);
+      toast({
+        title: "Item removed",
+        description: "Item has been removed from your cart.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove item. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      await clearCart();
+      toast({
+        title: "Cart cleared",
+        description: "All items have been removed from your cart.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear cart. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
 
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-4">
-              <div className="flex gap-4">
-                <div className="w-20 h-20 bg-gray-200 rounded" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-5 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                  <div className="h-8 bg-gray-200 rounded w-24" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
 
   if (cartItems.length === 0) {
     return (
@@ -130,9 +129,7 @@ export function CartContent() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => {
-            cartItems.forEach(item => removeItem(item.id));
-          }}
+          onClick={handleClearCart}
           disabled={updatingItems.size > 0}
         >
           Clear Cart
@@ -156,7 +153,7 @@ export function CartContent() {
                 <div className="flex gap-4">
                   {/* Product Image */}
                   <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                    {item.product.images.length > 0 ? (
+                    {item.product.images && item.product.images.length > 0 ? (
                       <Image
                         src={item.product.images[0]}
                         alt={item.product.name}
@@ -250,8 +247,6 @@ export function CartContent() {
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-
-
                       </div>
 
                       {/* Price */}

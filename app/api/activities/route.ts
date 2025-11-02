@@ -1,21 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { ActivityType } from '@prisma/client';
 import { z } from 'zod';
 import { headers } from 'next/headers';
 
 // Validation schema for activity creation/update
 const activitySchema = z.object({
   name: z.string().min(1, 'Activity name is required'),
-  type: z.enum(['COFFEE_TOUR', 'POOL_BOOKING', 'HIKING', 'BIRD_WATCHING', 'MASSAGE', 'OTHER']),
-  description: z.string().min(1, 'Description is required'),
+  type: z.nativeEnum(ActivityType),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
   duration: z.number().int().positive('Duration must be positive'),
-  price: z.number().positive('Price must be positive'),
+  price: z.number().min(0, 'Price must be non-negative'),
   capacity: z.number().int().positive('Capacity must be positive'),
-  bookable: z.boolean().optional(),
+  maxParticipants: z.number().int().positive('Max participants must be positive'),
+  location: z.string().min(1, 'Location is required'),
+  bookable: z.boolean().default(true),
   requirements: z.array(z.string()).optional(),
-  availability: z.any().optional(),
+  availability: z.object({
+    days: z.array(z.string()),
+    timeSlots: z.array(z.object({
+      start: z.string(),
+      end: z.string()
+    }))
+  }).optional(),
 });
+
+// Helper function to generate slug from name
+function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
 
 // GET /api/activities - Get all activities with filtering
 export async function GET(request: NextRequest) {
@@ -26,7 +43,6 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
-    const difficulty = searchParams.get('difficulty');
     const duration = searchParams.get('duration');
     const location = searchParams.get('location');
     const date = searchParams.get('date');
@@ -42,8 +58,6 @@ export async function GET(request: NextRequest) {
     if (type && type !== 'all') {
       where.type = type;
     }
-
-    // Remove difficulty filter as it doesn't exist in the model
 
     if (minPrice || maxPrice) {
       where.price = {};
@@ -195,7 +209,6 @@ export async function GET(request: NextRequest) {
         type,
         minPrice,
         maxPrice,
-        difficulty,
         duration,
         location,
         date,
@@ -221,7 +234,7 @@ export async function POST(request: NextRequest) {
       headers: await headers(),
     });
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -229,7 +242,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('Received body:', JSON.stringify(body, null, 2));
+    
     const validatedData = activitySchema.parse(body);
+    console.log('Validation successful:', JSON.stringify(validatedData, null, 2));
+
+    // Generate unique slug
+    let baseSlug = generateSlug(validatedData.name);
+    let slug = baseSlug;
+    let counter = 1;
+
+    // Ensure slug is unique
+    while (await prisma.activity.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
 
     // Check if name is unique
     const existingActivity = await prisma.activity.findUnique({
@@ -247,6 +274,7 @@ export async function POST(request: NextRequest) {
     const activity = await prisma.activity.create({
       data: {
         ...validatedData,
+        slug,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -276,7 +304,7 @@ export async function PUT(request: NextRequest) {
       headers: await headers(),
     });
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -356,7 +384,7 @@ export async function DELETE(request: NextRequest) {
       headers: await headers(),
     });
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

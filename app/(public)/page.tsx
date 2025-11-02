@@ -4,9 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Users, Star, Coffee, Mountain, TreePine, Wifi, Car, Waves, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 async function getProperties() {
   try {
@@ -31,9 +29,10 @@ async function getProperties() {
         createdAt: 'desc',
       },
     });
-    return properties;
+    return properties || [];
   } catch (error) {
     console.error('Error fetching properties:', error);
+    // Return empty array as fallback to prevent page crash
     return [];
   }
 }
@@ -46,9 +45,10 @@ async function getActivities() {
       },
       take: 4,
     });
-    return activities;
+    return activities || [];
   } catch (error) {
     console.error('Error fetching activities:', error);
+    // Return empty array as fallback to prevent page crash
     return [];
   }
 }

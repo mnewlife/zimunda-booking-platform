@@ -24,7 +24,6 @@ import { cn } from '@/lib/utils';
 interface FilterState {
   type: string;
   duration: string;
-  difficulty: string;
   minPrice: string;
   maxPrice: string;
 }
@@ -36,7 +35,6 @@ export function ActivityFilters() {
   const [filters, setFilters] = useState<FilterState>({
     type: 'all',
     duration: 'any',
-    difficulty: 'all',
     minPrice: '',
     maxPrice: '',
   });
@@ -46,7 +44,6 @@ export function ActivityFilters() {
     setFilters({
       type: searchParams.get('type') || 'all',
       duration: searchParams.get('duration') || 'any',
-      difficulty: searchParams.get('difficulty') || 'all',
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
     });
@@ -61,9 +58,7 @@ export function ActivityFilters() {
     if (newFilters.duration && newFilters.duration !== 'any') {
       params.set('duration', newFilters.duration);
     }
-    if (newFilters.difficulty && newFilters.difficulty !== 'all') {
-      params.set('difficulty', newFilters.difficulty);
-    }
+
     if (newFilters.minPrice) {
       params.set('minPrice', newFilters.minPrice);
     }
@@ -86,7 +81,6 @@ export function ActivityFilters() {
     const clearedFilters = {
       type: 'all',
       duration: 'any',
-      difficulty: 'all',
       minPrice: '',
       maxPrice: '',
     };
@@ -97,7 +91,6 @@ export function ActivityFilters() {
   const hasActiveFilters = 
     filters.type !== 'all' ||
     (filters.duration && filters.duration !== 'any') ||
-    filters.difficulty !== 'all' ||
     filters.minPrice ||
     filters.maxPrice;
 
@@ -189,25 +182,6 @@ export function ActivityFilters() {
                   </Select>
                 </div>
 
-                {/* Difficulty */}
-                <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
-                  <Select
-                    value={filters.difficulty}
-                    onValueChange={(value) => handleFilterChange('difficulty', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All levels" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Price Range */}
                 <div className="space-y-2 md:col-span-2">
                   <Label>Price Range (USD)</Label>
@@ -269,13 +243,7 @@ export function ActivityFilters() {
                     <TrendingUp className="h-3 w-3" />
                     <span>Adventure</span>
                   </Button>
-                  <Button
-                    variant={filters.difficulty === 'easy' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleFilterChange('difficulty', filters.difficulty === 'easy' ? 'all' : 'easy')}
-                  >
-                    Easy Level
-                  </Button>
+
                   <Button
                     variant={filters.duration === '4' ? 'default' : 'outline'}
                     size="sm"

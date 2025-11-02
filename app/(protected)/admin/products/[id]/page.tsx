@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -33,13 +33,17 @@ export const metadata: Metadata = {
 };
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const session = await getServerSession(authOptions);
+  const { id } = await params;
+  
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   
   if (!session?.user) {
     redirect('/login');
@@ -52,7 +56,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const [product, orderItems, stats] = await Promise.all([
     prisma.product.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
       include: {
         variants: true,
@@ -63,14 +67,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
         },
         _count: {
           select: {
-            orderItems: true,
+            orders: true,
           },
         },
       },
     }),
     prisma.orderItem.findMany({
       where: {
-        productId: params.id,
+        productId: id,
       },
       include: {
         order: {
@@ -78,7 +82,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             id: true,
             createdAt: true,
             status: true,
-            user: {
+            customer: {
               select: {
                 name: true,
                 email: true,
@@ -99,7 +103,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }),
     prisma.orderItem.aggregate({
       where: {
-        productId: params.id,
+        productId: id,
       },
       _sum: {
         quantity: true,

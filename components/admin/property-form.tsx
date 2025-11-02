@@ -43,6 +43,7 @@ import { toast } from 'sonner';
 import { Loader2, Plus, X, Upload, MapPin } from 'lucide-react';
 import { PropertyType, PropertyStatus } from '@prisma/client';
 import { createProperty, updateProperty } from '@/lib/actions/property-actions';
+import { getPropertyTypeOptions } from '@/lib/property-utils';
 import prisma from '@/lib/prisma';
 
 // Fetch amenities function
@@ -56,11 +57,11 @@ async function getAmenities() {
 
 const propertyFormSchema = z.object({
   name: z.string().min(1, 'Property name is required').max(100, 'Name too long'),
-  type: z.enum(['COTTAGE', 'CABIN']),
+  type: z.nativeEnum(PropertyType),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   maxOccupancy: z.number().min(1, 'Must accommodate at least 1 person').max(20, 'Maximum 20 people'),
   basePrice: z.number().min(1, 'Base price must be greater than 0'),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE']),
+  status: z.nativeEnum(PropertyStatus),
   location: z.object({
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
@@ -309,8 +310,11 @@ export function PropertyForm({ children, property }: PropertyFormProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="COTTAGE">Cottage</SelectItem>
-                            <SelectItem value="CABIN">Cabin</SelectItem>
+                            {getPropertyTypeOptions().map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />

@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import { Loader2, Plus, X, Upload, MapPin, ArrowLeft } from 'lucide-react';
 import { PropertyType, PropertyStatus } from '@prisma/client';
 import { createProperty, updateProperty } from '@/lib/actions/property-actions';
+import { getPropertyTypeOptions } from '@/lib/property-utils';
 import Link from 'next/link';
 
 const propertyFormSchema = z.object({
@@ -423,12 +424,11 @@ export function PropertyFormPage({ property }: PropertyFormPageProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="COTTAGE">Cottage</SelectItem>
-                              <SelectItem value="VILLA">Villa</SelectItem>
-                              <SelectItem value="APARTMENT">Apartment</SelectItem>
-                              <SelectItem value="HOUSE">House</SelectItem>
-                              <SelectItem value="STUDIO">Studio</SelectItem>
-                              <SelectItem value="PENTHOUSE">Penthouse</SelectItem>
+                              {getPropertyTypeOptions().map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />

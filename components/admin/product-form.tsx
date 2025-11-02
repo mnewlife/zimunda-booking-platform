@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { X, Plus, Loader2, Upload, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductCategory } from '@prisma/client';
@@ -389,29 +390,45 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
                       </Button>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
-                      <Input
-                        placeholder="Variant name (e.g., 250g Ground)"
-                        value={variant.name}
-                        onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                      />
-                      <Input
-                        placeholder="SKU"
-                        value={variant.sku}
-                        onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                      />
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="Price"
-                        value={variant.price}
-                        onChange={(e) => updateVariant(index, 'price', parseFloat(e.target.value) || 0)}
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Inventory"
-                        value={variant.inventory}
-                        onChange={(e) => updateVariant(index, 'inventory', parseInt(e.target.value) || 0)}
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor={`variant-name-${index}`}>Variant Name</Label>
+                        <Input
+                          id={`variant-name-${index}`}
+                          placeholder="e.g., 250g Ground"
+                          value={variant.name}
+                          onChange={(e) => updateVariant(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`variant-sku-${index}`}>SKU</Label>
+                        <Input
+                          id={`variant-sku-${index}`}
+                          placeholder="e.g., COFFEE-250G-GROUND"
+                          value={variant.sku}
+                          onChange={(e) => updateVariant(index, 'sku', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`variant-price-${index}`}>Price ($)</Label>
+                        <Input
+                          id={`variant-price-${index}`}
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={variant.price}
+                          onChange={(e) => updateVariant(index, 'price', parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`variant-inventory-${index}`}>Inventory</Label>
+                        <Input
+                          id={`variant-inventory-${index}`}
+                          type="number"
+                          placeholder="0"
+                          value={variant.inventory}
+                          onChange={(e) => updateVariant(index, 'inventory', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}

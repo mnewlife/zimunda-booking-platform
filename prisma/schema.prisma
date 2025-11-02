@@ -235,7 +235,6 @@ model Activity {
   price           Decimal
   capacity        Int
   maxParticipants Int
-  difficulty      String
   location        String
   requirements    String[]
   availability    Json // time slots, days
@@ -279,6 +278,7 @@ model Product {
   inventory   Int
   images      Image[]
   orders      OrderItem[]
+  isActive    Boolean          @default(true)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
@@ -291,6 +291,7 @@ model ProductVariant {
   inventory  Int
   sku        String      @unique
   options    Json // size, grind type, etc.
+  isActive   Boolean     @default(true)
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
   createdAt  DateTime    @default(now())
@@ -388,8 +389,13 @@ enum UserRole {
 }
 
 enum PropertyType {
-  COTTAGE
+  APARTMENT
   CABIN
+  COTTAGE
+  HOUSE
+  PENTHOUSE
+  STUDIO
+  VILLA
 }
 
 enum PropertyStatus {

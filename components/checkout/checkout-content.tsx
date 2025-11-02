@@ -11,27 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ShoppingCart, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useCart } from '@/hooks/use-cart';
 
-interface CartSummary {
-  subtotal: number;
-  discount: number;
-  shipping: number;
-  tax: number;
-  total: number;
-  itemCount: number;
-  totalQuantity: number;
-  appliedPromo: string | null;
-}
-
-interface CartItem {
-  id: string;
-  productId: string;
-  variantId?: string;
-  quantity: number;
-  price: number;
-  name: string;
-  variantName?: string;
-}
+// Use the interfaces from the new client-side cart hook
+import type { CartItem, CartSummary } from '@/hooks/use-client-cart';
 
 interface ValidationResult {
   valid: boolean;
@@ -45,8 +28,8 @@ interface ValidationResult {
 export function CheckoutContent() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { cartItems, cartSummary, clearCart } = useCart();
   const [currentStep, setCurrentStep] = useState(1);
-  const [cartSummary, setCartSummary] = useState<CartSummary | null>(null);
   const [validItems, setValidItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [validating, setValidating] = useState(false);
@@ -91,7 +74,7 @@ export function CheckoutContent() {
     notes: '',
   });
 
-  // Redirect if not authenticated
+  // Redirect to login if not authenticated (checkout requires authentication)
   useEffect(() => {
     if (!session) {
       router.push('/login?callbackUrl=/checkout');
@@ -99,52 +82,64 @@ export function CheckoutContent() {
     }
   }, [session, router]);
 
-  // Validate cart and fetch summary on mount
+  // Validate cart items when cart data is available
   useEffect(() => {
     if (session) {
-      validateCartAndFetchSummary();
+      validateCartItems();
     }
-  }, [session]);
+  }, [session, cartItems]);
 
-  const validateCartAndFetchSummary = async () => {
+  const validateCartItems = async () => {
     try {
       setValidating(true);
       
-      // Validate cart
-      const validateResponse = await fetch('/api/cart/validate', {
-        method: 'POST',
-      });
+      // Check if cart is empty
+      if (cartItems.length === 0) {
+        router.push('/cart');
+        return;
+      }
       
-      if (!validateResponse.ok) {
-        const errorData = await validateResponse.json();
-        if (errorData.issues?.length > 0) {
-          errorData.issues.forEach((issue: any) => {
-            toast.error(issue.message);
+      // For now, we'll assume all items are valid since we're using client-side cart
+      // In a real implementation, you might want to validate against current product data
+      const issues: any[] = [];
+      const validCartItems: CartItem[] = [];
+      
+      for (const item of cartItems) {
+        // Basic validation - check if item has required fields
+        if (!item.product || !item.product.id || !item.product.name || item.quantity <= 0) {
+          issues.push({
+            message: `Invalid item: ${item.product?.name || 'Unknown item'}`,
+            itemId: item.id,
           });
+          continue;
         }
         
-        if (errorData.itemCount === 0) {
+        // Check inventory (basic client-side check)
+        const currentInventory = item.variant?.inventory || item.product.inventory;
+        if (item.quantity > currentInventory) {
+          issues.push({
+            message: `${item.product.name} - Only ${currentInventory} items available, but ${item.quantity} requested`,
+            itemId: item.id,
+          });
+          continue;
+        }
+        
+        validCartItems.push(item);
+      }
+      
+      // Show issues if any
+      if (issues.length > 0) {
+        issues.forEach(issue => {
+          toast.error(issue.message);
+        });
+        
+        if (validCartItems.length === 0) {
           router.push('/cart');
           return;
         }
       }
       
-      const validationResult: ValidationResult = await validateResponse.json();
-      
-      if (!validationResult.valid) {
-        toast.error('Some items in your cart have issues. Please review and try again.');
-        router.push('/cart');
-        return;
-      }
-      
-      setValidItems(validationResult.validItems);
-      
-      // Fetch cart summary
-      const summaryResponse = await fetch('/api/cart/summary');
-      if (summaryResponse.ok) {
-        const summary: CartSummary = await summaryResponse.json();
-        setCartSummary(summary);
-      }
+      setValidItems(validCartItems);
     } catch (error) {
       console.error('Error validating cart:', error);
       toast.error('Failed to validate cart. Please try again.');
@@ -183,31 +178,46 @@ export function CheckoutContent() {
         return;
       }
       
-      // No additional validation needed for stripe and bank_transfer methods
-      
-      // Create order
+      // Create order data
       const orderData = {
         type: 'product',
         items: validItems.map(item => ({
-          productId: item.productId,
-          variantId: item.variantId,
+          productId: item.product.id,
+          variantId: item.variant?.id,
           quantity: item.quantity,
-          price: item.price,
+          price: item.variant?.price || item.product.price,
+          name: item.product.name,
+          variantName: item.variant?.name,
         })),
         shippingAddress: formData.shipping,
         billingAddress: formData.billing.sameAsShipping ? formData.shipping : formData.billing,
         paymentMethod: formData.payment.method,
         paymentDetails: formData.payment,
         notes: formData.notes,
+        summary: cartSummary,
       };
       
-      // For now, we'll just show success and redirect to dashboard
-      // TODO: Implement proper order processing without user order pages
-      toast.success('Purchase completed successfully!');
+      // Create the order via API
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
       
-      // Clear cart and redirect to dashboard
-      await fetch('/api/cart', { method: 'DELETE' });
-      router.push('/dashboard?purchase=success');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create order');
+      }
+      
+      const order = await response.json();
+      
+      toast.success('Order placed successfully!');
+      
+      // Clear cart and redirect
+      await clearCart();
+      router.push(`/orders/${order.id}?success=true`);
     } catch (error) {
       console.error('Error placing order:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to place order');
@@ -220,7 +230,7 @@ export function CheckoutContent() {
     return null;
   }
 
-  if (loading || validating) {
+  if (loading || validating || isLoading) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
@@ -261,6 +271,17 @@ export function CheckoutContent() {
     );
   }
 
+  // Convert CartItem[] to the format expected by OrderSummary
+  const orderItems = validItems.map(item => ({
+    id: item.id,
+    productId: item.product.id,
+    variantId: item.variant?.id,
+    quantity: item.quantity,
+    price: item.variant?.price || item.product.price,
+    name: item.product.name,
+    variantName: item.variant?.name,
+  }));
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Checkout Form */}
@@ -293,7 +314,7 @@ export function CheckoutContent() {
       {/* Order Summary */}
       <div className="lg:col-span-1">
         <OrderSummary
-          items={validItems}
+          items={orderItems}
           summary={cartSummary}
           currentStep={currentStep}
           onPlaceOrder={handlePlaceOrder}

@@ -3,13 +3,14 @@ import { headers } from 'next/headers';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { ProductCategory } from '@prisma/client';
 
-// Product validation schema
+// Product validation schema - aligned with frontend validation
 const productSchema = z.object({
-  name: z.string().min(1, 'Product name is required'),
-  category: z.enum(['COFFEE', 'MERCHANDISE', 'FOOD', 'BEVERAGES']),
-  description: z.string().min(1, 'Description is required'),
-  price: z.number().positive('Price must be positive'),
+  name: z.string().min(1, 'Product name is required').max(100, 'Name too long'),
+  category: z.nativeEnum(ProductCategory),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  price: z.number().min(0, 'Price must be positive'),
   inventory: z.number().int().min(0, 'Inventory cannot be negative'),
   images: z.array(z.object({
     url: z.string().url(),
@@ -17,6 +18,13 @@ const productSchema = z.object({
     caption: z.string().optional(),
     order: z.number().int().default(0),
   })).optional(),
+  variants: z.array(z.object({
+    name: z.string().min(1, 'Variant name is required'),
+    price: z.number().min(0, 'Price must be positive'),
+    inventory: z.number().min(0, 'Inventory must be non-negative'),
+    sku: z.string().min(1, 'SKU is required'),
+    options: z.record(z.string()).optional()
+  })).optional()
 });
 
 // GET /api/products - Fetch products with filtering and pagination
@@ -141,7 +149,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('Received product data:', JSON.stringify(body, null, 2));
+    
     const validatedData = productSchema.parse(body);
+    console.log('Validated product data:', JSON.stringify(validatedData, null, 2));
 
     // Check if product name is unique
     const existingProduct = await prisma.product.findUnique({
@@ -155,7 +166,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create product with images
+    // Create product with images and variants
     const product = await prisma.product.create({
       data: {
         name: validatedData.name,
@@ -165,6 +176,9 @@ export async function POST(request: NextRequest) {
         inventory: validatedData.inventory,
         images: validatedData.images ? {
           create: validatedData.images,
+        } : undefined,
+        variants: validatedData.variants ? {
+          create: validatedData.variants,
         } : undefined,
       },
       include: {
@@ -176,8 +190,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error details:', error.errors);
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { 
+          error: 'Validation error', 
+          details: error.errors,
+          message: 'Please check your form data and try again'
+        },
         { status: 400 }
       );
     }
@@ -190,70 +209,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/products - Update a product (admin only)
-export async function PUT(request: NextRequest) {
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
 
-    if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const body = await request.json();
-    const { id, ...updateData } = body;
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Product ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const validatedData = productSchema.partial().parse(updateData);
-
-    // Check if product exists
-    const existingProduct = await prisma.product.findUnique({
-      where: { id },
-    });
-
-    if (!existingProduct) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
-    }
-
-    // Update product
-    const product = await prisma.product.update({
-      where: { id },
-      data: validatedData,
-      include: {
-        images: true,
-        variants: true,
-      },
-    });
-
-    return NextResponse.json({ product });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    console.error('Error updating product:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
 
 // DELETE /api/products - Delete a product (admin only)
 export async function DELETE(request: NextRequest) {

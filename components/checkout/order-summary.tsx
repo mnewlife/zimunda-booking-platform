@@ -1,13 +1,17 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingBag, Truck, Shield } from 'lucide-react';
 import Image from 'next/image';
 
-interface CartItem {
+// Use the interfaces from the new client-side cart hook
+import type { CartSummary } from '@/hooks/use-client-cart';
+
+// Interface for order items (simplified from CartItem for order summary)
+interface OrderItem {
   id: string;
   productId: string;
   variantId?: string;
@@ -17,19 +21,8 @@ interface CartItem {
   variantName?: string;
 }
 
-interface CartSummary {
-  subtotal: number;
-  discount: number;
-  shipping: number;
-  tax: number;
-  total: number;
-  itemCount: number;
-  totalQuantity: number;
-  appliedPromo: string | null;
-}
-
 interface OrderSummaryProps {
-  items: CartItem[];
+  items: OrderItem[];
   summary: CartSummary;
   currentStep: number;
   onPlaceOrder: () => void;

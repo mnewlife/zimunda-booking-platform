@@ -38,6 +38,8 @@ const activityFormSchema = z.object({
   duration: z.number().min(15, 'Duration must be at least 15 minutes').max(1440, 'Duration cannot exceed 24 hours'),
   price: z.number().min(0, 'Price must be positive'),
   capacity: z.number().min(1, 'Capacity must be at least 1').max(100, 'Capacity cannot exceed 100'),
+  maxParticipants: z.number().min(1, 'Max participants must be at least 1').max(100, 'Max participants cannot exceed 100'),
+  location: z.string().min(1, 'Location is required').max(200, 'Location too long'),
   bookable: z.boolean(),
   requirements: z.array(z.string()).optional(),
   availability: z.object({
@@ -86,6 +88,8 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
       duration: initialData?.duration || 60,
       price: initialData?.price || 0,
       capacity: initialData?.capacity || 10,
+      maxParticipants: (initialData as any)?.maxParticipants || 10,
+      location: (initialData as any)?.location || '',
       bookable: initialData?.bookable ?? true,
       requirements: requirements,
       availability: {
@@ -310,6 +314,50 @@ export function ActivityForm({ initialData, isEditing = false }: ActivityFormPro
                     </FormControl>
                     <FormDescription>
                       Maximum number of participants
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="maxParticipants"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Participants per Booking</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="10"
+                        className="bg-white"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Maximum participants allowed per single booking
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Coffee Farm, Main Lodge"
+                        className="bg-white"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Where this activity takes place
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

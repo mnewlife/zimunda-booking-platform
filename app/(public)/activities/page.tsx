@@ -13,7 +13,6 @@ export const metadata: Metadata = {
 interface SearchParams {
   type?: string;
   duration?: string;
-  difficulty?: string;
   minPrice?: string;
   maxPrice?: string;
 }
@@ -60,7 +59,6 @@ async function getActivities(searchParams: SearchParams) {
       duration: true,
       maxParticipants: true,
       price: true,
-      difficulty: true,
       location: true,
       bookable: true,
       images: {
