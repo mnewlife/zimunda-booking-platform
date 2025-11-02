@@ -14,7 +14,7 @@ function mapPaymentMethod(paymentMethod: string): PaymentMethod {
     'STRIPE': PaymentMethod.STRIPE,
   };
   
-  return methodMap[paymentMethod] || PaymentMethod.CASH;
+  return methodMap[paymentMethod] || PaymentMethod.STRIPE;
 }
 
 // Validation schema for public activity booking creation

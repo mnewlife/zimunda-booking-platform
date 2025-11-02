@@ -6,7 +6,6 @@ import { PropertyDetails } from '@/components/property/property-details';
 import { PropertyBooking } from '@/components/property/property-booking';
 import { PropertyAmenities } from '@/components/property/property-amenities';
 import { PropertyLocation } from '@/components/property/property-location';
-import { SimilarProperties } from '@/components/property/similar-properties';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import Link from 'next/link';
 
@@ -56,44 +55,6 @@ async function getProperty(slug: string) {
   return property;
 }
 
-async function getSimilarProperties(currentPropertyId: string, propertyType: string) {
-  const properties = await prisma.property.findMany({
-    where: {
-      id: {
-        not: currentPropertyId,
-      },
-      type: propertyType,
-      status: 'ACTIVE',
-    },
-    include: {
-      images: {
-        orderBy: {
-          order: 'asc',
-        },
-        take: 1,
-      },
-      _count: {
-        select: {
-          bookings: {
-            where: {
-              status: 'CONFIRMED',
-              checkOut: {
-                gte: new Date(),
-              },
-            },
-          },
-        },
-      },
-    },
-    take: 3,
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
-
-  return properties;
-}
-
 export async function generateMetadata({ params }: PropertyPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const property = await getProperty(resolvedParams.slug);
@@ -122,8 +83,6 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
   if (!property) {
     notFound();
   }
-
-  const similarProperties = await getSimilarProperties(property.id, property.type);
 
   /*const breadcrumbItems = [
     { label: 'Home', href: '/' },
@@ -202,19 +161,6 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
             </div>
           </div>
         </div>
-
-        {/* Similar Properties */}
-        {similarProperties.length > 0 && (
-          <div className="mt-16">
-            <SimilarProperties 
-              properties={similarProperties.map(prop => ({
-                ...prop,
-                basePrice: Number(prop.basePrice)
-              }))}
-              currentPropertyType={property.type}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

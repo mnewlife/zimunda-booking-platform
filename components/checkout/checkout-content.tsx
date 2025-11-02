@@ -59,7 +59,7 @@ export function CheckoutContent() {
       country: 'Zimbabwe',
     },
     payment: {
-      method: 'card' as 'card' | 'bank_transfer',
+      method: 'stripe' as 'stripe' | 'bank_transfer',
       cardNumber: '',
       expiryDate: '',
       cvv: '',

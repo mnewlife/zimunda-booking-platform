@@ -115,7 +115,7 @@ export function BookingWizard({ property, initialBookingData, bookedDates }: Boo
       email: '',
       phone: '',
       specialRequests: '',
-      paymentMethod: 'bank_transfer',
+      paymentMethod: 'stripe',
       agreeToTerms: false,
     },
   });

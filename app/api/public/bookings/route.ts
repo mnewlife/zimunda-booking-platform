@@ -7,11 +7,13 @@ function mapPaymentMethod(paymentMethod: string): PaymentMethod {
   const methodMap: Record<string, PaymentMethod> = {
     'cash': PaymentMethod.CASH,
     'bank_transfer': PaymentMethod.BANK_TRANSFER,
+    'stripe': PaymentMethod.STRIPE,
     'CASH': PaymentMethod.CASH,
     'BANK_TRANSFER': PaymentMethod.BANK_TRANSFER,
+    'STRIPE': PaymentMethod.STRIPE,
   };
   
-  return methodMap[paymentMethod] || PaymentMethod.CASH; // Default to CASH if invalid
+  return methodMap[paymentMethod] || PaymentMethod.STRIPE; // Default to STRIPE if invalid
 }
 
 // POST /api/public/bookings - Create a new booking (public endpoint)

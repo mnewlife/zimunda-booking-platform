@@ -196,7 +196,7 @@ export function BookingForm({ property, activities, globalAddOns, initialBooking
       specialRequests: '',
       selectedAddOns: [],
       selectedActivities: [],
-      paymentMethod: 'bank_transfer',
+      paymentMethod: 'stripe',
       agreeToTerms: false,
       isActivityBooking,
     },

@@ -112,7 +112,7 @@ const defaultValues: Partial<BookingFormValues> = {
   adults: 1,
   children: 0,
   isEstateBooking: false,
-  paymentMethod: 'CASH',
+  paymentMethod: 'STRIPE',
   paymentStatus: 'PENDING',
   status: 'PENDING',
   selectedAddOns: [],
